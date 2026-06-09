@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Pengadaan B2B - UMKM</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#059669', // Emerald 600 - Warna hijau untuk sisi pembeli/UMKM
+                        primaryHover: '#047857',
+                        secondary: '#f59e0b', // Amber 500
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        .hide-scroll {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .hide-scroll::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 font-sans h-screen flex overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 text-white flex flex-col hidden md:flex transition-all duration-300">
+        <div class="h-16 flex items-center px-6 border-b border-slate-700">
+            <i class="ph-fill ph-storefront text-primary text-2xl mr-2"></i>
+            <span class="text-xl font-bold tracking-wide">Portal<span class="text-primary">UMKM</span></span>
+        </div>
+
+        <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+            <button onclick="navigate('dashboard')" id="nav-dashboard"
+                class="nav-btn w-full flex items-center px-3 py-2.5 rounded-lg bg-primary text-white font-medium transition-colors">
+                <i class="ph ph-squares-four text-xl mr-3"></i> Dashboard
+            </button>
+            <button onclick="navigate('katalog')" id="nav-katalog"
+                class="nav-btn w-full flex items-center px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white font-medium transition-colors">
+                <i class="ph ph-shopping-bag text-xl mr-3"></i> Katalog Supplier
+            </button>
+            <button onclick="navigate('keranjang')" id="nav-keranjang"
+                class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white font-medium transition-colors">
+                <div class="flex items-center">
+                    <i class="ph ph-shopping-cart text-xl mr-3"></i> Keranjang
+                </div>
+                <span id="cart-badge"
+                    class="bg-secondary text-white text-xs font-bold px-2 py-0.5 rounded-full hidden">0</span>
+            </button>
+            <button onclick="navigate('riwayat')" id="nav-riwayat"
+                class="nav-btn w-full flex items-center px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white font-medium transition-colors">
+                <i class="ph ph-clock-counter-clockwise text-xl mr-3"></i> Riwayat Pesanan
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-slate-700">
+            <div class="bg-slate-800 rounded-lg p-3 mb-3 border border-slate-700">
+                <div class="text-xs text-slate-400 mb-1 flex items-center"><i
+                        class="ph-fill ph-bank text-secondary mr-1"></i> Saldo SmartBank</div>
+                <div class="font-bold text-white text-lg" id="sidebar-balance">Rp 0</div>
+            </div>
+            <div class="flex items-center">
+                <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-sm font-bold">WB</div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium">Warung Bu Ani</p>
+                    <p class="text-xs text-slate-400">Node POS</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col overflow-hidden relative">
+        <!-- Topbar -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10">
+            <div class="flex items-center md:hidden">
+                <button class="text-slate-500 hover:text-slate-700 focus:outline-none">
+                    <i class="ph ph-list text-2xl"></i>
+                </button>
+                <span class="ml-3 text-lg font-bold text-slate-800">Portal UMKM</span>
+            </div>
+
+            <div class="hidden md:flex items-center text-sm text-slate-500">
+                <i class="ph ph-shield-check text-primary text-lg mr-2"></i>
+                Sistem Terkoneksi: <span class="text-slate-700 font-semibold ml-1">API Gateway & SmartBank</span>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <button class="relative text-slate-400 hover:text-slate-600">
+                    <i class="ph ph-bell text-xl"></i>
+                </button>
+                <!-- Tombol Logout yang mengarah kembali ke login.html -->
+                <button onclick="window.location.href='login.html'"
+                    class="text-red-500 hover:text-red-700 flex items-center text-sm font-medium transition-colors bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg">
+                    <i class="ph ph-sign-out text-lg mr-1.5"></i> Keluar
+                </button>
+            </div>
+        </header>
+
+        <!-- Dynamic Content Area -->
+        <div id="content-area" class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50">
+            <!-- Content injected by JS -->
+        </div>
+    </main>
+
+    <!-- Promo Modal Overlay -->
+    <div id="promo-modal-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden items-center justify-center p-4 transition-opacity duration-300 opacity-0" onclick="closePromoModal(event)">
+        <div id="promo-modal" class="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto transform scale-95 transition-all duration-300 relative" onclick="event.stopPropagation()">
+            <button onclick="closePromoModal()" class="absolute top-4 right-4 w-8 h-8 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-700 transition-colors z-10">
+                <i class="ph-bold ph-x text-sm"></i>
+            </button>
+            <div id="promo-modal-content">
+                <!-- Injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+
+    <!-- Scripts -->
+    <script>
+        // --- State Management ---
+        const CONFIG = {
+            supplierFeePercentage: 0.03 // Fee 3% Sesuai Aturan Keuangan
+        };
+
+        // Saldo Klien (SmartBank)
+        let userBalance = 2500000000;
+
+        const formatRupiah = (number) => {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+        };
+
+        // Data Katalog dari SupplierHub
+        const supplierCatalog = [
+            { id: 'MAT-001', name: 'Tepung Terigu Segitiga Biru', category: 'Bahan Pokok', price: 12000, unit: 'Kg', icon: 'ph-package' },
+            { id: 'MAT-002', name: 'Gula Pasir Kristal Putih', category: 'Bahan Pokok', price: 16500, unit: 'Kg', icon: 'ph-cube' },
+            { id: 'MAT-003', name: 'Minyak Goreng Sawit', category: 'Cair', price: 17000, unit: 'Liter', icon: 'ph-drop' },
+            { id: 'MAT-004', name: 'Telur Ayam Horn', category: 'Bahan Pokok', price: 28000, unit: 'Tray', icon: 'ph-egg' },
+            { id: 'MAT-005', name: 'Bawang Merah Brebes', category: 'Bumbu & Rempah', price: 35000, unit: 'Kg', icon: 'ph-plant' },
+            { id: 'MAT-006', name: 'Kemasan Plastik Thinwall', category: 'Kemasan', price: 1500, unit: 'Pcs', icon: 'ph-box-arrow-up' }
+        ];
+
+        let cart = [];
+        let orderHistory = [
+            { id: 'ORD-B2B-881', date: '2026-04-20 10:30', total: 154500, status: 'Selesai', resi: 'SP-8810' }
+        ];
+
+        // --- Core Functions ---
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-primary' : (type === 'info' ? 'bg-blue-600' : 'bg-red-600');
+            const icon = type === 'success' ? 'ph-check-circle' : (type === 'info' ? 'ph-info' : 'ph-warning-circle');
+
+            toast.className = `flex items-center text-white px-4 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-y-10 opacity-0 ${bgColor}`;
+            toast.innerHTML = `
+                <i class="ph ${icon} text-xl mr-2"></i>
+                <span class="text-sm font-medium">${message}</span>
+            `;
+
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-y-10', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function updateGlobalUI() {
+            document.getElementById('sidebar-balance').innerText = formatRupiah(userBalance);
+
+            const badge = document.getElementById('cart-badge');
+            const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+            badge.innerText = totalItems;
+            badge.style.display = totalItems > 0 ? 'inline-block' : 'none';
+        }
+
+        function navigate(view) {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-primary', 'text-white');
+                btn.classList.add('text-slate-300', 'hover:bg-slate-800');
+            });
+
+            const activeBtn = document.getElementById(`nav-${view}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-300', 'hover:bg-slate-800');
+                activeBtn.classList.add('bg-primary', 'text-white');
+            }
+
+            const contentArea = document.getElementById('content-area');
+
+            if (view === 'dashboard') renderDashboard(contentArea);
+            else if (view === 'katalog') renderKatalog(contentArea);
+            else if (view === 'keranjang') renderKeranjang(contentArea);
+            else if (view === 'riwayat') renderRiwayat(contentArea);
+
+            updateGlobalUI();
+        }
+
+        // --- View Renderers ---
+
+        function renderDashboard(container) {
+            const totalSpent = orderHistory.reduce((sum, order) => sum + order.total, 0);
+
+            container.innerHTML = `
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold text-slate-800">Dashboard UMKM</h1>
+                    <p class="text-slate-500 text-sm mt-1">Ringkasan aktivitas pengadaan bahan baku Anda.</p>
+                </div>
+
+                ${getPromoBannerHtml()}
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-white rounded-xl p-5 border border-slate-100 shadow-sm flex items-center">
+                        <div class="w-12 h-12 rounded-lg bg-emerald-100 text-primary flex items-center justify-center text-2xl mr-4">
+                            <i class="ph-fill ph-wallet"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-slate-500 font-medium mb-1">Saldo SmartBank</p>
+                            <h3 class="text-xl font-bold text-slate-800">${formatRupiah(userBalance)}</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl p-5 border border-slate-100 shadow-sm flex items-center">
+                        <div class="w-12 h-12 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-2xl mr-4">
+                            <i class="ph-fill ph-receipt"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-slate-500 font-medium mb-1">Total Pengeluaran</p>
+                            <h3 class="text-xl font-bold text-slate-800">${formatRupiah(totalSpent)}</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl p-5 border border-slate-100 shadow-sm flex items-center">
+                        <div class="w-12 h-12 rounded-lg bg-amber-100 text-secondary flex items-center justify-center text-2xl mr-4">
+                            <i class="ph-fill ph-shopping-bag"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-slate-500 font-medium mb-1">Total Pesanan</p>
+                            <h3 class="text-2xl font-bold text-slate-800">${orderHistory.length} <span class="text-sm font-normal text-slate-500">Kali</span></h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl p-6 border border-slate-100 shadow-sm mb-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center"><i class="ph ph-info text-primary mr-2"></i> Informasi Sistem Ekosistem B2B</h3>
+                    <ul class="space-y-3 text-sm text-slate-600">
+                        <li class="flex items-start"><i class="ph-fill ph-check-circle text-primary mt-0.5 mr-2"></i> <strong>Pembayaran Otomatis:</strong> Setiap transaksi akan langsung memotong saldo SmartBank Anda secara otomatis melalui API Gateway.</li>
+                        <li class="flex items-start"><i class="ph-fill ph-check-circle text-primary mt-0.5 mr-2"></i> <strong>Biaya Layanan (Fee):</strong> Terdapat fee layanan supplier sebesar <strong>3%</strong> dari total belanja bahan baku (Sesuai Aturan Keuangan No. 7).</li>
+                        <li class="flex items-start"><i class="ph-fill ph-check-circle text-primary mt-0.5 mr-2"></i> <strong>Logistik:</strong> Setelah pembayaran sukses, LogistiKita akan secara otomatis dijadwalkan untuk penjemputan barang.</li>
+                    </ul>
+                </div>
+            `;
+        }
+
+        function renderKatalog(container) {
+            let cardsHtml = supplierCatalog.map(m => `
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col h-full transition-all hover:shadow-md hover:border-primary">
+                    <div class="h-32 bg-slate-50 rounded-lg mb-4 flex items-center justify-center text-slate-300 border border-slate-100">
+                        <i class="ph-fill ${m.icon} text-6xl opacity-50 text-primary"></i>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded uppercase tracking-wider">${m.category}</span>
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1 leading-snug line-clamp-2">${m.name}</h3>
+                    <p class="text-xs text-slate-400 font-mono mb-4">Supplier: Pusat</p>
+                    
+                    <div class="mt-auto pt-3 flex flex-col gap-3 border-t border-slate-50">
+                        <div>
+                            <p class="font-bold text-slate-800 text-lg leading-none">${formatRupiah(m.price)}<span class="text-xs font-normal text-slate-500 ml-1">/${m.unit}</span></p>
+                        </div>
+                        <button onclick="addToCart('${m.id}')" class="w-full bg-slate-50 hover:bg-primary hover:text-white text-primary border border-slate-200 hover:border-primary text-sm font-semibold py-2 rounded-lg transition-all flex justify-center items-center">
+                            <i class="ph ph-shopping-cart-simple mr-2 text-lg"></i> Beli Bahan
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold text-slate-800">Katalog SupplierHub</h1>
+                    <p class="text-slate-500 text-sm mt-1">Pilih dan beli bahan baku untuk keperluan produksi UMKM Anda.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                    ${cardsHtml}
+                </div>
+            `;
+        }
+
+        function renderKeranjang(container) {
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="mb-6"><h1 class="text-2xl font-bold text-slate-800">Keranjang Belanja</h1></div>
+                    <div class="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-slate-200 shadow-sm">
+                        <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                            <i class="ph ph-shopping-cart text-4xl text-slate-300"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-700 mb-2">Keranjang Anda Kosong</h3>
+                        <p class="text-sm text-slate-500 mb-6">Silakan pilih bahan baku di Katalog Supplier terlebih dahulu.</p>
+                        <button onclick="navigate('katalog')" class="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-primaryHover transition-colors">Lihat Katalog</button>
+                    </div>
+                `;
+                return;
+            }
+
+            let subtotal = 0;
+            let cartHtml = cart.map((item, index) => {
+                const material = supplierCatalog.find(m => m.id === item.id);
+                const itemTotal = material.price * item.qty;
+                subtotal += itemTotal;
+
+                return `
+                    <div class="flex flex-col sm:flex-row justify-between items-center py-4 border-b border-slate-100 last:border-0 gap-4">
+                        <div class="flex items-center flex-1">
+                            <div class="w-12 h-12 bg-slate-50 rounded-lg flex items-center justify-center text-primary mr-4 border border-slate-100">
+                                <i class="ph-fill ${material.icon} text-2xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">${material.name}</h4>
+                                <p class="text-xs text-slate-500">${formatRupiah(material.price)} / ${material.unit}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-slate-50 mr-4">
+                                <button onclick="changeQty(${index}, -1)" class="px-3 py-1 hover:bg-slate-200 text-slate-600 font-bold transition-colors">-</button>
+                                <div class="px-3 py-1 bg-white text-sm font-bold min-w-[2.5rem] text-center border-x border-slate-200">${item.qty}</div>
+                                <button onclick="changeQty(${index}, 1)" class="px-3 py-1 hover:bg-slate-200 text-slate-600 font-bold transition-colors">+</button>
+                            </div>
+                            <div class="w-24 text-right">
+                                <div class="font-bold text-slate-800 text-sm">${formatRupiah(itemTotal)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const supplierFee = subtotal * CONFIG.supplierFeePercentage;
+            const grandTotal = subtotal + supplierFee;
+
+            container.innerHTML = `
+                <div class="mb-6 flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-800">Keranjang Belanja</h1>
+                        <p class="text-slate-500 text-sm mt-1">Review pesanan dan proses pembayaran melalui SmartBank.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 p-5 self-start">
+                        <h3 class="font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">Daftar Bahan Baku</h3>
+                        ${cartHtml}
+                    </div>
+
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-5 mb-4">
+                            <h3 class="font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">Ringkasan Pembayaran</h3>
+                            
+                            <div class="space-y-2 text-sm text-slate-600 mb-4">
+                                <div class="flex justify-between">
+                                    <span>Subtotal</span>
+                                    <span class="font-medium text-slate-800">${formatRupiah(subtotal)}</span>
+                                </div>
+                                <div class="flex justify-between items-center text-secondary bg-amber-50 p-2 rounded border border-amber-100">
+                                    <span class="flex items-center"><i class="ph-fill ph-info mr-1"></i> Fee Supplier (3%)</span>
+                                    <span class="font-bold">+ ${formatRupiah(supplierFee)}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="border-t border-slate-100 pt-3 flex justify-between items-center mb-6">
+                                <span class="font-bold text-slate-800 text-base">Total Tagihan</span>
+                                <span class="font-bold text-primary text-xl">${formatRupiah(grandTotal)}</span>
+                            </div>
+
+                            <div class="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-xl p-4 mb-4 text-white relative overflow-hidden shadow-md">
+                                <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-8 translate-x-8"></div>
+                                <div class="absolute bottom-0 left-0 w-14 h-14 bg-white/10 rounded-full translate-y-5 -translate-x-5"></div>
+                                <div class="relative z-10">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center gap-1.5">
+                                            <i class="ph-fill ph-bank text-lg"></i>
+                                            <span class="text-xs font-bold uppercase tracking-widest opacity-80">SmartBank</span>
+                                        </div>
+                                        <span class="text-[10px] bg-white/25 px-2 py-0.5 rounded-full font-bold tracking-wider">B2B</span>
+                                    </div>
+                                    <p class="text-[10px] opacity-60 uppercase tracking-wider mb-0.5">Saldo Tersedia</p>
+                                    <p class="text-2xl font-bold leading-tight">${formatRupiah(userBalance)}</p>
+                                    <p class="text-[10px] opacity-60 mt-2 flex items-center gap-1"><i class="ph ph-user-circle"></i> Warung Bu Ani · Node POS</p>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-400 text-center mb-3 flex items-center justify-center gap-1">
+                                <i class="ph ph-lock-simple text-emerald-500"></i> Pembayaran aman via API Gateway
+                            </p>
+                            <button onclick="processCheckout(${grandTotal})" class="w-full bg-primary hover:bg-primaryHover text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center shadow-md">
+                                <i class="ph-fill ph-bank mr-2 text-lg"></i> Bayar via SmartBank
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderRiwayat(container) {
+            let rows = orderHistory.map(o => `
+                <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td class="py-3 px-4">
+                        <div class="font-mono text-sm font-bold text-slate-700">${o.id}</div>
+                        <div class="text-xs text-slate-500">${o.date}</div>
+                    </td>
+                    <td class="py-3 px-4 text-sm font-bold text-slate-800">
+                        ${formatRupiah(o.total)}
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold border border-green-200">
+                            <i class="ph-fill ph-check-circle mr-1"></i> Lunas
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-sm text-slate-600">
+                        <i class="ph ph-truck mr-1 text-slate-400"></i> Menunggu Kurir
+                    </td>
+                    <td class="py-3 px-4">
+                        ${o.resi ? `<span class="font-mono text-sm font-bold text-primary flex items-center gap-1"><i class="ph ph-truck"></i>${o.resi}</span>` : `<span class="px-2 py-1 bg-slate-100 text-slate-500 rounded text-xs font-medium">Menunggu Resi</span>`}
+                    </td>
+                </tr>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold text-slate-800">Riwayat Pesanan</h1>
+                    <p class="text-slate-500 text-sm mt-1">Daftar transaksi B2B yang telah dibayar lunas.</p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-semibold tracking-wider">
+                                    <th class="py-3 px-4">ID Transaksi & Waktu</th>
+                                    <th class="py-3 px-4">Total Nilai</th>
+                                    <th class="py-3 px-4">Pembayaran (SmartBank)</th>
+                                    <th class="py-3 px-4">Status Logistik</th>
+                                    <th class="py-3 px-4">Resi Pengiriman</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${orderHistory.length > 0 ? rows : '<tr><td colspan="5" class="py-8 text-center text-slate-500">Belum ada riwayat belanja.</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Logic Operations ---
+
+        function addToCart(id) {
+            const existing = cart.find(item => item.id === id);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({ id, qty: 1 });
+            }
+            updateGlobalUI();
+            showToast('Bahan berhasil ditambahkan ke keranjang.', 'success');
+        }
+
+        function changeQty(index, delta) {
+            if (cart[index]) {
+                cart[index].qty += delta;
+                if (cart[index].qty <= 0) {
+                    cart.splice(index, 1); // Hapus jika 0
+                }
+            }
+            renderKeranjang(document.getElementById('content-area'));
+            updateGlobalUI();
+        }
+
+        function processCheckout(grandTotal) {
+            if (userBalance < grandTotal) {
+                showToast(`Saldo SmartBank tidak cukup! Kekurangan: ${formatRupiah(grandTotal - userBalance)}`, 'error');
+                return;
+            }
+
+            // Simulasi Proses Output -> API Gateway -> SmartBank
+            showToast('Memproses pembayaran melalui API Gateway...', 'info');
+
+            setTimeout(() => {
+                // Potong saldo
+                userBalance -= grandTotal;
+
+                // Catat di riwayat
+                const now = new Date();
+                const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                const newId = 'ORD-B2B-' + Math.floor(100 + Math.random() * 900);
+
+                orderHistory.unshift({
+                    id: newId,
+                    date: dateStr,
+                    total: grandTotal,
+                    status: 'Selesai',
+                    resi: null
+                });
+
+                // Kosongkan keranjang
+                cart = [];
+                updateGlobalUI();
+
+                showToast('Pembayaran Berhasil dipotong dari SmartBank!', 'success');
+
+                // Redirect ke riwayat
+                setTimeout(() => navigate('riwayat'), 800);
+            }, 1500);
+        }
+
+        // --- Promo System ---
+        const PROMO_DATA = {
+            'loyalty': {
+                type: 'info',
+                icon: 'ph-crown',
+                gradient: 'from-amber-500 to-orange-500',
+                bgLight: 'bg-amber-50',
+                textColor: 'text-amber-600',
+                badge: 'Program Loyalitas',
+                title: 'Pesan 5x, Pengiriman ke-6 GRATIS!',
+                desc: 'Setiap UMKM yang menyelesaikan 5 transaksi pengadaan bahan baku akan otomatis mendapatkan gratis ongkos kirim pada pengiriman berikutnya.',
+                benefits: [
+                    { milestone: '5x', text: 'Gratis Ongkir', sub: 'Pengiriman ke-6 bebas biaya' },
+                    { milestone: '10x', text: 'Diskon 10%', sub: 'Potongan langsung di order' },
+                    { milestone: '15x', text: 'VIP Member', sub: 'Harga spesial + priority shipping' },
+                    { milestone: '25x', text: 'Gold Partner ⭐', sub: 'Diskon 15% + gratis ongkir selamanya' }
+                ],
+                btnText: 'Mulai Belanja Sekarang',
+                btnAction: 'katalog'
+            },
+            'bundle-starter': {
+                type: 'bundle',
+                icon: 'ph-leaf',
+                gradient: 'from-emerald-500 to-emerald-600',
+                bgLight: 'bg-emerald-50',
+                textColor: 'text-emerald-600',
+                badge: 'Pengguna Baru',
+                title: 'Paket Starter UMKM',
+                desc: 'Bahan baku dasar untuk memulai produksi',
+                items: [
+                    { id: 'MAT-001', name: 'Tepung Terigu', qty: 10 },
+                    { id: 'MAT-002', name: 'Gula Pasir', qty: 5 },
+                    { id: 'MAT-003', name: 'Minyak Goreng', qty: 5 },
+                    { id: 'MAT-004', name: 'Telur Ayam', qty: 2 }
+                ],
+                originalPrice: 339500,
+                promoPrice: 289000,
+                discount: 'Hemat Rp 50.500 (15%)',
+                btnText: 'Tambah ke Keranjang',
+                btnAction: 'addBundle'
+            },
+            'bundle-pro': {
+                type: 'bundle',
+                icon: 'ph-package',
+                gradient: 'from-blue-500 to-blue-600',
+                bgLight: 'bg-blue-50',
+                textColor: 'text-blue-600',
+                badge: '⭐ Paling Populer',
+                title: 'Paket Usaha Pro',
+                desc: 'Lengkap untuk produksi harian skala menengah',
+                items: [
+                    { id: 'MAT-001', name: 'Tepung Terigu', qty: 25 },
+                    { id: 'MAT-002', name: 'Gula Pasir', qty: 15 },
+                    { id: 'MAT-003', name: 'Minyak Goreng', qty: 10 },
+                    { id: 'MAT-004', name: 'Telur Ayam', qty: 5 },
+                    { id: 'MAT-005', name: 'Bawang Merah', qty: 3 }
+                ],
+                originalPrice: 847500,
+                promoPrice: 679000,
+                discount: 'Hemat Rp 168.500 (20%) + Free Ongkir',
+                btnText: 'Tambah ke Keranjang',
+                btnAction: 'addBundle'
+            },
+            'bundle-grosir': {
+                type: 'bundle',
+                icon: 'ph-warehouse',
+                gradient: 'from-amber-500 to-amber-600',
+                bgLight: 'bg-amber-50',
+                textColor: 'text-amber-600',
+                badge: 'Best Value',
+                title: 'Paket Grosir Mitra',
+                desc: 'Stok besar dengan harga supplier langsung',
+                items: [
+                    { id: 'MAT-001', name: 'Tepung Terigu', qty: 50 },
+                    { id: 'MAT-002', name: 'Gula Pasir', qty: 25 },
+                    { id: 'MAT-003', name: 'Minyak Goreng', qty: 20 },
+                    { id: 'MAT-004', name: 'Telur Ayam', qty: 10 },
+                    { id: 'MAT-005', name: 'Bawang Merah', qty: 10 }
+                ],
+                originalPrice: 1695000,
+                promoPrice: 1299000,
+                discount: 'Hemat Rp 396.000 (23%) + VIP',
+                btnText: 'Tambah ke Keranjang',
+                btnAction: 'addBundle'
+            },
+            'flash-cashback': {
+                type: 'info',
+                icon: 'ph-lightning',
+                gradient: 'from-red-500 to-orange-500',
+                bgLight: 'bg-red-50',
+                textColor: 'text-red-600',
+                badge: '⚡ Flash Deal',
+                title: 'Cashback 5% Transaksi Pertama!',
+                desc: 'Daftar hari ini dan langsung dapatkan cashback 5% untuk transaksi pertama Anda. Cashback otomatis masuk ke saldo SmartBank.',
+                benefits: [
+                    { milestone: '5%', text: 'Cashback Instan', sub: 'Langsung masuk saldo SmartBank' },
+                    { milestone: '1x', text: 'Transaksi Pertama', sub: 'Berlaku untuk order pertama Anda' }
+                ],
+                btnText: 'Mulai Belanja & Klaim Cashback',
+                btnAction: 'katalog'
+            }
+        };
+
+        let activePromo = null;
+
+        function getPromoParam() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('promo');
+        }
+
+        function openPromoModal(promoKey) {
+            const promo = PROMO_DATA[promoKey];
+            if (!promo) return;
+            activePromo = promoKey;
+
+            const overlay = document.getElementById('promo-modal-overlay');
+            const modal = document.getElementById('promo-modal');
+            const content = document.getElementById('promo-modal-content');
+
+            let bodyHtml = '';
+
+            if (promo.type === 'bundle') {
+                const itemsHtml = promo.items.map(it =>
+                    `<li class="flex items-center gap-2 text-sm text-slate-700">
+                        <i class="ph-fill ph-check-circle ${promo.textColor}"></i> ${it.name} <span class="ml-auto font-bold text-slate-500">${it.qty} unit</span>
+                    </li>`
+                ).join('');
+
+                bodyHtml = `
+                    <div class="bg-gradient-to-br ${promo.gradient} p-6 pb-8 text-white relative overflow-hidden">
+                        <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                        <div class="relative z-10">
+                            <div class="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full mb-3 border border-white/20">${promo.badge}</div>
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center"><i class="ph-fill ${promo.icon} text-2xl"></i></div>
+                                <h3 class="text-2xl font-extrabold">${promo.title}</h3>
+                            </div>
+                            <p class="text-white/80 text-sm">${promo.desc}</p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-100">
+                            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Isi Paket</h4>
+                            <ul class="space-y-2.5">${itemsHtml}</ul>
+                        </div>
+                        <div class="flex items-end gap-3 mb-3">
+                            <span class="text-slate-400 text-sm line-through">${formatRupiah(promo.originalPrice)}</span>
+                            <span class="text-2xl font-extrabold ${promo.textColor}">${formatRupiah(promo.promoPrice)}</span>
+                        </div>
+                        <div class="${promo.bgLight} ${promo.textColor} text-xs font-bold px-3 py-1.5 rounded-lg inline-flex items-center gap-1 mb-5 border border-current/20">
+                            <i class="ph-fill ph-tag"></i> ${promo.discount}
+                        </div>
+                        <button onclick="handlePromoAction('${promoKey}')" class="w-full bg-gradient-to-r ${promo.gradient} text-white font-bold py-3.5 rounded-2xl transition-all shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2 text-base">
+                            <i class="ph-bold ph-shopping-cart"></i> ${promo.btnText}
+                        </button>
+                    </div>`;
+            } else {
+                const benefitsHtml = promo.benefits.map(b =>
+                    `<div class="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <div class="w-10 h-10 ${promo.bgLight} rounded-full flex items-center justify-center ${promo.textColor} font-extrabold text-sm shrink-0">${b.milestone}</div>
+                        <div><p class="text-slate-800 text-sm font-bold">${b.text}</p><p class="text-slate-500 text-xs">${b.sub}</p></div>
+                    </div>`
+                ).join('');
+
+                bodyHtml = `
+                    <div class="bg-gradient-to-br ${promo.gradient} p-6 pb-8 text-white relative overflow-hidden">
+                        <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                        <div class="relative z-10">
+                            <div class="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full mb-3 border border-white/20">${promo.badge}</div>
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center"><i class="ph-fill ${promo.icon} text-2xl"></i></div>
+                                <h3 class="text-2xl font-extrabold">${promo.title}</h3>
+                            </div>
+                            <p class="text-white/80 text-sm">${promo.desc}</p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Benefit & Milestone</h4>
+                        <div class="space-y-2.5 mb-6">${benefitsHtml}</div>
+                        <button onclick="handlePromoAction('${promoKey}')" class="w-full bg-gradient-to-r ${promo.gradient} text-white font-bold py-3.5 rounded-2xl transition-all shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2 text-base">
+                            <i class="ph-bold ph-rocket-launch"></i> ${promo.btnText}
+                        </button>
+                    </div>`;
+            }
+
+            content.innerHTML = bodyHtml;
+
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                modal.classList.remove('scale-95');
+                modal.classList.add('scale-100');
+            }, 20);
+        }
+
+        function closePromoModal(e) {
+            if (e && e.target !== e.currentTarget) return;
+            const overlay = document.getElementById('promo-modal-overlay');
+            const modal = document.getElementById('promo-modal');
+            overlay.classList.add('opacity-0');
+            modal.classList.remove('scale-100');
+            modal.classList.add('scale-95');
+            setTimeout(() => {
+                overlay.classList.remove('flex');
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+
+        function handlePromoAction(promoKey) {
+            const promo = PROMO_DATA[promoKey];
+            if (!promo) return;
+
+            if (promo.type === 'bundle' && promo.items) {
+                promo.items.forEach(item => {
+                    const existing = cart.find(c => c.id === item.id);
+                    if (existing) {
+                        existing.qty += item.qty;
+                    } else {
+                        cart.push({ id: item.id, qty: item.qty });
+                    }
+                });
+                updateGlobalUI();
+                closePromoModal();
+                showToast(`Paket "${promo.title}" berhasil ditambahkan ke keranjang!`, 'success');
+                setTimeout(() => navigate('keranjang'), 500);
+            } else {
+                closePromoModal();
+                navigate('katalog');
+                showToast('Selamat berbelanja! Promo Anda sudah aktif.', 'success');
+            }
+
+            // Clear promo from URL without reload
+            const url = new URL(window.location);
+            url.searchParams.delete('promo');
+            window.history.replaceState({}, '', url);
+        }
+
+        function getPromoBannerHtml() {
+            const promoKey = getPromoParam();
+            if (!promoKey || !PROMO_DATA[promoKey]) return '';
+            const promo = PROMO_DATA[promoKey];
+            return `
+                <div class="bg-gradient-to-r ${promo.gradient} rounded-xl p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg text-white relative overflow-hidden cursor-pointer" onclick="openPromoModal('${promoKey}')">
+                    <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                    <div class="flex items-center gap-3 relative z-10">
+                        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0"><i class="ph-fill ${promo.icon} text-xl"></i></div>
+                        <div>
+                            <p class="font-extrabold text-base">${promo.title}</p>
+                            <p class="text-white/80 text-xs">Klik untuk melihat detail penawaran</p>
+                        </div>
+                    </div>
+                    <button class="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-bold px-5 py-2 rounded-xl text-sm transition-all border border-white/20 shrink-0 relative z-10 flex items-center gap-1.5">
+                        Lihat Detail <i class="ph-bold ph-arrow-right"></i>
+                    </button>
+                </div>`;
+        }
+
+        // Initialize App
+        window.onload = () => {
+            navigate('dashboard');
+
+            // Show promo modal if arriving from landing page promo link
+            const promoKey = getPromoParam();
+            if (promoKey && PROMO_DATA[promoKey]) {
+                setTimeout(() => openPromoModal(promoKey), 600);
+            }
+        };
+
+    </script>
+</body>
+
+</html>

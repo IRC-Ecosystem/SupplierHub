@@ -1,0 +1,301 @@
+openapi: 3.0.0
+info:
+  title: SupplierHub REST API
+  description: Dokumentasi REST API untuk aplikasi SupplierHub.
+  version: 1.0.0
+
+servers:
+  - url: /SupplierHub/rest-api
+    description: Local Server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Memeriksa apakah API berjalan dengan baik.
+      security: []
+      responses:
+        '200':
+          description: OK
+          
+  /api/v1/auth/login:
+    post:
+      summary: Login User
+      description: Otentikasi pengguna dan mengembalikan JWT token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login berhasil
+        '401':
+          description: Kredensial tidak valid
+          
+  /api/v1/auth/register:
+    post:
+      summary: Registrasi User
+      description: Mendaftarkan pengguna baru (manufacturer atau supplier).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+                - role
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                role:
+                  type: string
+                  enum: [umkm, supplier]
+      responses:
+        '201':
+          description: Registrasi berhasil
+        '400':
+          description: Validasi gagal
+
+  /api/v1/auth/me:
+    get:
+      summary: Get Profile
+      description: Mengambil data profil user yang sedang login berdasarkan token.
+      responses:
+        '200':
+          description: Berhasil mengambil profil
+        '401':
+          description: Unauthorized
+
+  /api/v1/materials:
+    get:
+      summary: List Materials
+      description: Mendapatkan daftar bahan baku. Mendukung pagination.
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Nomor halaman
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Jumlah item per halaman
+      responses:
+        '200':
+          description: Berhasil mengambil list
+          
+    post:
+      summary: Tambah Material
+      description: Menambahkan bahan baku baru. Hanya bisa diakses oleh Supplier.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - category
+                - price
+                - stock
+                - unit
+              properties:
+                name:
+                  type: string
+                category:
+                  type: string
+                price:
+                  type: number
+                stock:
+                  type: integer
+                unit:
+                  type: string
+      responses:
+        '201':
+          description: Bahan baku berhasil ditambahkan
+        '400':
+          description: Validasi gagal
+        '403':
+          description: Forbidden (Bukan Supplier)
+
+  /api/v1/materials/{id}:
+    get:
+      summary: Detail Material
+      description: Mengambil detail spesifik bahan baku.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detail ditemukan
+        '404':
+          description: Tidak ditemukan
+
+    put:
+      summary: Update Material
+      description: Mengubah data bahan baku. Hanya Supplier pemilik yang bisa.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                category:
+                  type: string
+                price:
+                  type: number
+                stock:
+                  type: integer
+                unit:
+                  type: string
+      responses:
+        '200':
+          description: Berhasil diupdate
+          
+    delete:
+      summary: Hapus Material
+      description: Menghapus bahan baku. Hanya Supplier pemilik yang bisa.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Berhasil dihapus
+
+  /api/v1/orders:
+    get:
+      summary: List Orders
+      description: Mendapatkan daftar pesanan. Manufacturer melihat pesanannya sendiri, Supplier melihat pesanan yang masuk kepadanya.
+      responses:
+        '200':
+          description: Berhasil mengambil daftar pesanan
+
+    post:
+      summary: Buat Pesanan
+      description: Membuat pesanan baru ke Supplier.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - supplier_id
+                - items
+              properties:
+                supplier_id:
+                  type: integer
+                  description: ID dari supplier yang akan menerima pesanan
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      material_id:
+                        type: integer
+                      qty:
+                        type: integer
+      responses:
+        '201':
+          description: Pesanan berhasil dibuat
+
+  /api/v1/orders/{id}:
+    get:
+      summary: Detail Pesanan
+      description: Melihat detail pesanan.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detail pesanan ditemukan
+
+  /api/v1/orders/{id}/approve:
+    patch:
+      summary: Approve Pesanan
+      description: Menyetujui pesanan. Hanya Supplier terkait yang bisa.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Pesanan disetujui
+
+  /api/v1/orders/{id}/reject:
+    patch:
+      summary: Reject Pesanan
+      description: Menolak pesanan. Hanya Supplier terkait yang bisa.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Pesanan ditolak
+
+  /api/v1/reports/stats:
+    get:
+      summary: Dashboard Stats
+      description: Mengambil statistik untuk dashboard (jumlah pesanan, dll).
+      responses:
+        '200':
+          description: Berhasil

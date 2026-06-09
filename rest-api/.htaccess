@@ -1,0 +1,12 @@
+RewriteEngine On
+
+# Forward Authorization Header to PHP (Fix Apache CGI/FastCGI stripping)
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Jika file atau folder ada, akses langsung
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Semua request lain → index.php
+RewriteRule ^(.*)$ index.php [QSA,L]
