@@ -11,8 +11,8 @@ class Payment {
     /**
      * Create a new payment record (log)
      */
-    public static function create($user_id, $type, $amount, $description, $reference_id = null) {
-        $db = getDB();
+    public static function create($user_id, $type, $amount, $description, $reference_id = null, $db = null) {
+        $db = $db ?: getDB();
         $stmt = $db->prepare("
             INSERT INTO payments (user_id, type, amount, description, reference_id)
             VALUES (:user_id, :type, :amount, :description, :reference_id)

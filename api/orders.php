@@ -116,6 +116,7 @@ switch ($action) {
         // If checkout from cart session, use directCheckout (SmartBank + 3% fee)
         if (!empty($input['from_cart']) && isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
             $input['items'] = $_SESSION['cart'];
+            $input['idempotency_key'] = $_SESSION['checkout_idempotency_key'] ?? ($input['idempotency_key'] ?? null);
             // Resolve supplier_id from the first item in cart if not provided
             if (empty($input['supplier_id'])) {
                 $db = getDB();
@@ -132,6 +133,7 @@ switch ($action) {
             $_SESSION['cart'] = [];
             unset($_SESSION['bundle_discount']);
             unset($_SESSION['bundle_name']);
+            unset($_SESSION['checkout_idempotency_key']);
         }
         break;
 
@@ -151,7 +153,7 @@ switch ($action) {
         $user = AuthMiddleware::requireAuth();
         $userId = $user['user_id'];
         $orderId = $_GET['id'] ?? 0;
-        $response = OrderController::detail($orderId);
+        $response = OrderController::detail($orderId, $userId, $user['role']);
         break;
 
     case 'detail_by_ref':
@@ -163,7 +165,7 @@ switch ($action) {
         $stmt->execute(['ref' => $ref]);
         $row = $stmt->fetch();
         if ($row) {
-            $response = OrderController::detail($row['id']);
+            $response = OrderController::detail($row['id'], $userId, $user['role']);
         } else {
             $response = ['status' => 'error', 'message' => 'Pesanan tidak ditemukan.'];
         }
@@ -175,6 +177,14 @@ switch ($action) {
         $orderId = $input['order_id'] ?? 0;
         $resiPengiriman = $input['resi_pengiriman'] ?? null;
         $response = OrderController::approve($orderId, $userId, $resiPengiriman);
+        break;
+
+    case 'request_payment':
+        $user = AuthMiddleware::requireAuth('umkm');
+        $userId = $user['user_id'];
+        $orderId = (int)($input['order_id'] ?? 0);
+        $paymentKey = trim((string)($input['idempotency_key'] ?? ''));
+        $response = OrderController::requestPayment($orderId, $userId, $paymentKey);
         break;
 
     case 'reject':

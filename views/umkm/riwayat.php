@@ -1,7 +1,7 @@
 <?php
 $orders = Order::getByUmkm($userId);
 ?>
-<div class="mb-6"><h1 class="text-2xl font-bold text-slate-800">Riwayat Pesanan</h1><p class="text-slate-500 text-sm mt-1">Daftar transaksi B2B yang telah dibayar lunas.</p></div>
+<div class="mb-6"><h1 class="text-2xl font-bold text-slate-800">Riwayat Pesanan</h1><p class="text-slate-500 text-sm mt-1">Status order dan pembayaran diproses secara terpisah sesuai PRD.</p></div>
 <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
@@ -14,24 +14,35 @@ $orders = Order::getByUmkm($userId);
                     <td class="py-3 px-4"><div class="font-mono text-sm font-bold text-slate-700"><?= $o['order_code'] ?></div><div class="text-xs text-slate-500"><?= $o['created_at'] ?></div></td>
                     <td class="py-3 px-4 text-sm font-bold text-slate-800">Rp <?= number_format($o['total'],0,',','.') ?></td>
                     <td class="py-3 px-4">
-                        <?php if ($o['status'] === 'completed'): ?>
-                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold border border-green-200"><i class="ph-fill ph-check-circle mr-1"></i>Lunas</span>
-                        <?php elseif ($o['status'] === 'pending'): ?>
-                        <span class="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-bold border border-amber-200"><i class="ph-fill ph-clock mr-1"></i>Menunggu</span>
+                        <?php if ($o['payment_status'] === 'paid'): ?>
+                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold border border-green-200"><i class="ph-fill ph-check-circle mr-1"></i>PAID</span>
+                        <?php elseif ($o['status'] === 'submitted'): ?>
+                        <span class="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-bold border border-amber-200"><i class="ph-fill ph-clock mr-1"></i>Menunggu Supplier</span>
+                        <?php elseif ($o['payment_status'] === 'pending'): ?>
+                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold border border-blue-200">Menunggu Verifikasi SmartBank</span>
+                        <?php elseif (in_array($o['status'], ['pending_payment','payment_failed'], true)): ?>
+                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold border border-blue-200">Menunggu Pembayaran</span>
                         <?php else: ?>
                         <span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-bold border border-red-200"><?= ucfirst($o['status']) ?></span>
                         <?php endif; ?>
                     </td>
                     <td class="py-3 px-4 text-sm text-slate-600">
-                        <?php if ($o['status'] === 'completed'): ?><i class="ph ph-truck mr-1 text-slate-400"></i>Menunggu Kurir
-                        <?php elseif ($o['status'] === 'pending'): ?>Menunggu konfirmasi supplier
+                        <?php if ($o['payment_status'] === 'paid'): ?><i class="ph ph-package mr-1 text-slate-400"></i>Siap diproses supplier
+                        <?php elseif ($o['status'] === 'submitted'): ?>Menunggu konfirmasi supplier
+                        <?php elseif ($o['payment_status'] === 'pending'): ?>Payment request sudah dikirim ke SmartBank
+                        <?php elseif ($o['status'] === 'pending_payment'): ?>Supplier menerima pesanan; pembayaran dapat dilakukan
+                        <?php elseif ($o['status'] === 'payment_failed'): ?>Pembayaran sebelumnya gagal; dapat dicoba kembali
                         <?php endif; ?>
                     </td>
                     <td class="py-3 px-4">
-                        <?php if ($o['status'] === 'completed'): ?>
+                        <?php if ($o['payment_status'] === 'paid'): ?>
                         <button onclick="viewReceipt(<?= $o['id'] ?>, '<?= $o['order_code'] ?>')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold transition-all hover:shadow-sm">
                             <i class="ph ph-receipt text-sm"></i> Lihat Bukti
                         </button>
+                        <?php elseif ($o['payment_status'] === 'pending'): ?>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-700"><i class="ph ph-spinner-gap animate-spin"></i> Menunggu SmartBank</span>
+                        <?php elseif (in_array($o['status'], ['pending_payment','payment_failed'], true)): ?>
+                        <button onclick="requestSmartBankPayment(<?= $o['id'] ?>)" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold"><i class="ph ph-bank mr-1"></i> Bayar via SmartBank</button>
                         <?php else: ?>
                         <span class="text-slate-300 text-xs">—</span>
                         <?php endif; ?>
@@ -42,6 +53,18 @@ $orders = Order::getByUmkm($userId);
         </table>
     </div>
 </div>
+
+<script>
+async function requestSmartBankPayment(orderId) {
+    const key = 'smartbank-request-' + orderId + '-' + crypto.randomUUID();
+    if (!confirm('Kirim payment request ke SmartBank?')) return;
+    const result = await apiCall(BASE + '/api/orders.php?action=request_payment', 'POST', {
+        order_id: orderId, idempotency_key: key
+    });
+    showToast(result.message, result.status === 'success' ? 'success' : 'error');
+    if (result.status === 'success') setTimeout(() => location.reload(), 700);
+}
+</script>
 
 <!-- Receipt Modal -->
 <div id="receipt-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4 transition-all duration-300 opacity-0">

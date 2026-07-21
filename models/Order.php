@@ -35,7 +35,7 @@ class Order {
             // Insert order
             $stmt = $db->prepare("
                 INSERT INTO orders (order_code, umkm_id, supplier_id, status, subtotal, fee_supplier, total)
-                VALUES (:code, :umkm, :supplier, 'pending', :subtotal, :fee, :total)
+                VALUES (:code, :umkm, :supplier, 'submitted', :subtotal, :fee, :total)
             ");
             $stmt->execute([
                 'code'     => $orderCode,
@@ -84,7 +84,7 @@ class Order {
             SELECT o.*, u.name as umkm_name 
             FROM orders o 
             JOIN users u ON o.umkm_id = u.id 
-            WHERE o.supplier_id = :sid AND o.status = 'pending' 
+            WHERE o.supplier_id = :sid AND o.status = 'submitted'
             ORDER BY o.created_at DESC
         ");
         $stmt->execute(['sid' => $supplier_id]);
@@ -109,7 +109,7 @@ class Order {
             SELECT o.*, u.name as umkm_name 
             FROM orders o 
             JOIN users u ON o.umkm_id = u.id 
-            WHERE o.supplier_id = :sid AND o.status = 'completed' 
+            WHERE o.supplier_id = :sid AND o.status IN ('paid','processing','shipped','partially_received','received','completed')
             ORDER BY o.completed_at DESC
         ");
         $stmt->execute(['sid' => $supplier_id]);
@@ -174,6 +174,33 @@ class Order {
         return $stmt->fetch();
     }
 
+    public static function findByIdempotencyKey($umkm_id, $key) {
+        $db = getDB();
+        $stmt = $db->prepare("SELECT * FROM orders WHERE umkm_id = :uid AND idempotency_key = :ikey LIMIT 1");
+        $stmt->execute(['uid' => $umkm_id, 'ikey' => $key]);
+        return $stmt->fetch();
+    }
+
+    public static function canBeAccessedBy($order, $user_id, $role) {
+        if (!$order) return false;
+        if ($role === 'supplier') return (int)$order['supplier_id'] === (int)$user_id;
+        if ($role === 'umkm') return (int)$order['umkm_id'] === (int)$user_id;
+        return false;
+    }
+
+    public static function addStatusHistory($order_id, $from, $to, $actor_id = null, $reason = null, $db = null) {
+        $db = $db ?: getDB();
+        $stmt = $db->prepare("INSERT INTO order_status_history (order_id, from_status, to_status, actor_user_id, reason) VALUES (:oid,:from_status,:to_status,:actor,:reason)");
+        $stmt->execute(['oid'=>$order_id,'from_status'=>$from,'to_status'=>$to,'actor'=>$actor_id,'reason'=>$reason]);
+    }
+
+    public static function getStatusHistory($order_id) {
+        $db = getDB();
+        $stmt = $db->prepare("SELECT h.*, u.name AS actor_name FROM order_status_history h LEFT JOIN users u ON u.id=h.actor_user_id WHERE h.order_id=:oid ORDER BY h.created_at ASC, h.id ASC");
+        $stmt->execute(['oid'=>$order_id]);
+        return $stmt->fetchAll();
+    }
+
     /**
      * Approve order and update status
      */
@@ -181,11 +208,10 @@ class Order {
         $db = getDB();
         $stmt = $db->prepare("
             UPDATE orders 
-            SET status = 'completed', smartbank_ref = :ref, resi_pengiriman = :resi, completed_at = NOW()
-            WHERE id = :id AND status = 'pending'
+            SET status = 'pending_payment', payment_status = 'unpaid', resi_pengiriman = :resi
+            WHERE id = :id AND status = 'submitted'
         ");
         $stmt->execute([
-            'ref'  => $smartbank_ref,
             'resi' => $resi,
             'id'   => $order_id
         ]);
@@ -197,7 +223,7 @@ class Order {
      */
     public static function reject($order_id) {
         $db = getDB();
-        $stmt = $db->prepare("UPDATE orders SET status = 'rejected' WHERE id = :id AND status = 'pending'");
+        $stmt = $db->prepare("UPDATE orders SET status = 'rejected' WHERE id = :id AND status = 'submitted'");
         $stmt->execute(['id' => $order_id]);
         return $stmt->rowCount() > 0;
     }
@@ -209,12 +235,12 @@ class Order {
         $db = getDB();
 
         // Pending count
-        $stmt = $db->prepare("SELECT COUNT(*) as cnt FROM orders WHERE supplier_id = :sid AND status = 'pending'");
+        $stmt = $db->prepare("SELECT COUNT(*) as cnt FROM orders WHERE supplier_id = :sid AND status = 'submitted'");
         $stmt->execute(['sid' => $supplier_id]);
         $pending = $stmt->fetch()['cnt'];
 
         // Total revenue (completed)
-        $stmt = $db->prepare("SELECT COALESCE(SUM(total), 0) as total FROM orders WHERE supplier_id = :sid AND status = 'completed'");
+        $stmt = $db->prepare("SELECT COALESCE(SUM(total), 0) as total FROM orders WHERE supplier_id = :sid AND payment_status = 'paid'");
         $stmt->execute(['sid' => $supplier_id]);
         $revenue = $stmt->fetch()['total'];
 
@@ -230,7 +256,7 @@ class Order {
     public static function getUmkmStats($umkm_id) {
         $db = getDB();
 
-        $stmt = $db->prepare("SELECT COUNT(*) as cnt, COALESCE(SUM(total), 0) as spent FROM orders WHERE umkm_id = :uid AND status = 'completed'");
+        $stmt = $db->prepare("SELECT COUNT(*) as cnt, COALESCE(SUM(total), 0) as spent FROM orders WHERE umkm_id = :uid AND payment_status = 'paid'");
         $stmt->execute(['uid' => $umkm_id]);
         $row = $stmt->fetch();
 

@@ -26,7 +26,7 @@ $completedOrders = Order::getCompleted($userId);
 <!-- Riwayat Pesanan Selesai -->
 <div class="mb-6">
     <h2 class="text-xl font-bold text-slate-800">Riwayat Pesanan Selesai</h2>
-    <p class="text-slate-500 text-sm mt-1">Daftar transaksi B2B yang telah dikonfirmasi dan dibayar lunas.</p>
+    <p class="text-slate-500 text-sm mt-1">Daftar transaksi B2B yang sudah dibayar dan siap diproses.</p>
 </div>
 <?php if (empty($completedOrders)): ?>
 <div class="text-center py-10 bg-white rounded-xl border border-slate-200 shadow-sm">
@@ -38,11 +38,11 @@ $completedOrders = Order::getCompleted($userId);
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-emerald-500 transition-colors">
         <div>
             <div class="flex items-center gap-3 mb-1">
-                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded">Lunas</span>
+                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded">PAID</span>
                 <span class="text-xs text-slate-400 font-mono"><?= $o['order_code'] ?></span>
             </div>
             <h3 class="font-bold text-slate-800 text-lg"><?= htmlspecialchars($o['umkm_name']) ?></h3>
-            <p class="text-sm text-slate-500"><i class="ph ph-clock mr-1"></i> <?= $o['completed_at'] ?> | Total: Rp <?= number_format($o['total'], 0, ',', '.') ?></p>
+            <p class="text-sm text-slate-500"><i class="ph ph-clock mr-1"></i> <?= $o['paid_at'] ?? $o['completed_at'] ?> | Total: Rp <?= number_format($o['total'], 0, ',', '.') ?></p>
         </div>
         <button onclick="viewReceipt(<?= $o['id'] ?>, '<?= $o['order_code'] ?>')" class="w-full md:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-sm font-bold transition-all hover:shadow-sm">
             <i class="ph ph-receipt text-lg"></i> Lihat Bukti
@@ -61,7 +61,7 @@ $completedOrders = Order::getCompleted($userId);
         <div class="p-6 overflow-y-auto flex-1" id="modal-order-body">Loading...</div>
         <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
             <button onclick="closeOrderModal()" class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg">Batal</button>
-            <button id="btn-approve" onclick="approveOrder()" class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg shadow-sm flex items-center"><i class="ph ph-paper-plane-tilt mr-2"></i> Approve &amp; Kirim Payment Request</button>
+            <button id="btn-approve" onclick="approveOrder()" class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg shadow-sm flex items-center"><i class="ph ph-check mr-2"></i> Terima Pesanan</button>
         </div>
     </div>
 </div>

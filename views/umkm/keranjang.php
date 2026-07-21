@@ -12,6 +12,11 @@ foreach ($cart as $item) {
 }
 $fee = (int) round($subtotal * FEE_SUPPLIER);
 $bundleDiscount = $_SESSION['bundle_discount'] ?? 0;
+$cartFingerprint = hash('sha256', json_encode($_SESSION['cart'] ?? []));
+if (empty($_SESSION['checkout_idempotency_key']) || ($_SESSION['checkout_cart_fingerprint'] ?? '') !== $cartFingerprint) {
+    $_SESSION['checkout_idempotency_key'] = 'checkout-' . bin2hex(random_bytes(24));
+    $_SESSION['checkout_cart_fingerprint'] = $cartFingerprint;
+}
 $bundleName = $_SESSION['bundle_name'] ?? '';
 
 // Dynamic Membership Subscription Discount
@@ -99,7 +104,7 @@ input[type=number]::-webkit-outer-spin-button {
                 <p>Pembayaran akan otomatis memotong saldo <strong>SmartBank</strong> Anda melalui API Gateway.</p>
             </div>
             <button onclick="openSmartBankModal()" class="w-full bg-primary hover:bg-primaryHover text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center shadow-md">
-                <i class="ph ph-wallet mr-2 text-lg"></i> Bayar via SmartBank
+                <i class="ph ph-paper-plane-tilt mr-2 text-lg"></i> Buat Pesanan
             </button>
         </div>
     </div>
@@ -118,17 +123,17 @@ input[type=number]::-webkit-outer-spin-button {
                     <i class="ph-bold ph-check text-white text-4xl"></i>
                 </div>
             </div>
-            <h3 id="sb-payment-status-title" class="text-xl font-extrabold text-slate-800 mb-2 tracking-tight">Otorisasi SmartBank...</h3>
-            <p id="sb-payment-status-sub" class="text-xs font-medium text-slate-500">Memverifikasi token keamanan transaksi</p>
+            <h3 id="sb-payment-status-title" class="text-xl font-extrabold text-slate-800 mb-2 tracking-tight">Membuat Pesanan...</h3>
+            <p id="sb-payment-status-sub" class="text-xs font-medium text-slate-500">Memvalidasi item dan ketersediaan stok</p>
         </div>
 
-        <!-- Modal Header (SmartBank Theme) -->
+        <!-- Modal Header -->
         <div class="px-5 py-4 bg-emerald-600 text-white border-b border-emerald-700 flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-lg"><i class="ph-fill ph-bank"></i></div>
                 <div>
-                    <h3 class="font-extrabold text-sm">SmartBank SecurePay</h3>
-                    <p class="text-[10px] text-emerald-200">B2B Link Gateway</p>
+                    <h3 class="font-extrabold text-sm">Konfirmasi Pesanan B2B</h3>
+                    <p class="text-[10px] text-emerald-200">Tahap sebelum pembayaran</p>
                 </div>
             </div>
             <button onclick="closeSmartBankModal()" class="w-8 h-8 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white flex items-center justify-center transition-all outline-none">
@@ -149,25 +154,17 @@ input[type=number]::-webkit-outer-spin-button {
                     <span class="font-bold text-slate-800">SupplierHub B2B</span>
                 </div>
                 <div class="flex justify-between items-center text-xs">
-                    <span class="text-slate-500">Sumber Dana</span>
-                    <span class="font-bold text-emerald-600"><i class="ph-fill ph-wallet mr-1"></i> Saldo SmartBank</span>
+                    <span class="text-slate-500">Status Awal</span>
+                    <span class="font-bold text-amber-600"><i class="ph-fill ph-clock mr-1"></i> Menunggu Supplier</span>
                 </div>
                 <div class="flex justify-between items-center text-xs">
-                    <span class="text-slate-500">Nomor Referensi</span>
-                    <span class="font-mono text-slate-800">SB-<?= date('ymd') ?>-XXXX</span>
+                    <span class="text-slate-500">Pembayaran</span>
+                    <span class="font-bold text-slate-700">Belum dilakukan</span>
                 </div>
             </div>
             
-            <div class="pt-2">
-                <label class="block text-xs font-bold text-slate-700 mb-2">PIN SmartBank (Simulasi)</label>
-                <div class="flex gap-2 justify-center">
-                    <input type="password" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold bg-slate-50 border border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all" value="1">
-                    <input type="password" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold bg-slate-50 border border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all" value="2">
-                    <input type="password" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold bg-slate-50 border border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all" value="3">
-                    <input type="password" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold bg-slate-50 border border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all" value="4">
-                    <input type="password" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold bg-slate-50 border border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all" value="5">
-                    <input type="password" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold bg-slate-50 border border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all" value="6">
-                </div>
+            <div class="p-3 rounded-xl bg-blue-50 border border-blue-100 text-xs text-blue-700">
+                Supplier harus menerima pesanan sebelum simulasi pembayaran tersedia di halaman Riwayat Pesanan.
             </div>
         </div>
 
@@ -175,7 +172,7 @@ input[type=number]::-webkit-outer-spin-button {
         <div class="px-5 py-4 bg-slate-50 border-t border-slate-100 flex gap-3">
             <button onclick="closeSmartBankModal()" class="flex-1 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all">Batal</button>
             <button onclick="processCheckout()" class="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/30 transition-all flex justify-center items-center gap-2">
-                <i class="ph-fill ph-lock-key"></i> Konfirmasi Pembayaran
+                <i class="ph-fill ph-paper-plane-tilt"></i> Kirim Pesanan
             </button>
         </div>
     </div>
@@ -192,6 +189,7 @@ let cartState = {
     subDiscount: <?= $subDiscount ?>,
     total: <?= $grandTotal ?>
 };
+const checkoutIdempotencyKey = <?= json_encode($_SESSION['checkout_idempotency_key']) ?>;
 
 function clearCart() {
     if (confirm('Apakah Anda yakin ingin mengosongkan seluruh isi keranjang belanja Anda?')) {
@@ -228,12 +226,12 @@ async function processCheckout(){
     loader.classList.remove('hidden');
     loader.style.opacity = '1';
 
-    title.innerText = 'Otorisasi SmartBank...';
-    sub.innerText = 'Memverifikasi token keamanan transaksi';
+    title.innerText = 'Memvalidasi Pesanan...';
+    sub.innerText = 'Memeriksa item dan supplier';
     await new Promise(r => setTimeout(r, 800));
 
-    title.innerText = 'Memproses Pembayaran...';
-    sub.innerText = 'Menghubungi API Gateway';
+    title.innerText = 'Membuat Order...';
+    sub.innerText = 'Menyimpan order tanpa pembayaran';
     
     const totalDiscount = cartState.bundleDiscount + cartState.subDiscount;
     let discountName = '';
@@ -250,13 +248,14 @@ async function processCheckout(){
         from_cart: true,
         discount: totalDiscount,
         voucher_name: discountName
+        ,idempotency_key: checkoutIdempotencyKey
     });
     
     await new Promise(r => setTimeout(r, 800));
 
     if(r.status==='success'){
-        title.innerText = 'Pembayaran Berhasil!';
-        sub.innerText = 'Transaksi telah selesai diverifikasi.';
+        title.innerText = 'Pesanan Berhasil Dibuat!';
+        sub.innerText = 'Menunggu supplier menerima pesanan. Belum ada pembayaran.';
         spinner.classList.add('hidden');
         checkIcon.classList.remove('hidden');
         setTimeout(() => {

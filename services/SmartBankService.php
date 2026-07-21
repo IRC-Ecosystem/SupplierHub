@@ -22,7 +22,7 @@ class SmartBankService implements PaymentGatewayInterface {
      *   Proses: Validasi → kirim ke SmartBank via Gateway
      *   Output: payment status + reference
      */
-    public static function pay($user_id, $amount, $fee_supplier, $description = '') {
+    public static function pay($user_id, $amount, $fee_supplier, $description = '', $idempotencyKey = null) {
         // Map local SupplierHub user ID to SmartBank account user ID
         // local ID 1 (Supplier) -> SmartBank ID 3
         // local ID 2 (UMKM)     -> SmartBank ID 2
@@ -41,10 +41,23 @@ class SmartBankService implements PaymentGatewayInterface {
             'timestamp'    => date('Y-m-d H:i:s')
         ];
 
+        if ($idempotencyKey) {
+            $payload['idempotency_key'] = $idempotencyKey;
+        }
+
         // Route through API Gateway
         $payload = GatewayMiddleware::process($payload);
 
-        // Try to call SmartBank API
+        // Local development uses an explicit mock. A SmartBank outage must never
+        // silently turn into a successful payment in integration mode.
+        if (PAYMENT_MODE === 'mock') {
+            return self::simulateResponse('/smartbank/pembayaran_transaksi', $payload);
+        }
+
+        if (PAYMENT_MODE !== 'smartbank') {
+            return ['status' => 'error', 'message' => 'PAYMENT_MODE tidak valid.'];
+        }
+
         $response = self::callSmartBankAPI('/smartbank/pembayaran_transaksi', $payload);
 
         return $response;
@@ -64,6 +77,14 @@ class SmartBankService implements PaymentGatewayInterface {
             'user_id'    => $mappedUserId,
             'source_app' => 'SupplierHub'
         ];
+
+        if (PAYMENT_MODE === 'mock') {
+            return self::simulateResponse('/smartbank/manajemen_saldo', $payload);
+        }
+
+        if (PAYMENT_MODE !== 'smartbank') {
+            return ['status' => 'error', 'message' => 'PAYMENT_MODE tidak valid.'];
+        }
 
         $response = self::callSmartBankAPI('/smartbank/manajemen_saldo', $payload, 'GET');
 
@@ -112,16 +133,21 @@ class SmartBankService implements PaymentGatewayInterface {
             }
         }
 
-        // Fallback: Simulate SmartBank response
-        // (Digunakan saat SmartBank belum online)
-        return self::simulateResponse($endpoint, $data);
+        return [
+            'status' => 'error',
+            'message' => $error
+                ? 'SmartBank tidak dapat dihubungi: ' . $error
+                : 'SmartBank mengembalikan HTTP ' . $httpCode,
+            'data' => ['http_code' => $httpCode]
+        ];
     }
 
     /**
      * Simulate SmartBank response for offline development
      */
     private static function simulateResponse($endpoint, $data) {
-        $refId = 'SB-REF-' . date('Ymd') . '-' . str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT);
+        $seed = $data['idempotency_key'] ?? bin2hex(random_bytes(16));
+        $refId = 'LOCAL-' . strtoupper(substr(hash('sha256', $seed), 0, 20));
 
         if (strpos($endpoint, 'pembayaran_transaksi') !== false) {
             return [

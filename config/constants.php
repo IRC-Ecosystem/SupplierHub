@@ -17,6 +17,11 @@ define('JWT_EXPIRY', 86400); // 24 hours
 // SmartBank API (kelompok lain)
 define('SMARTBANK_API_URL', 'http://localhost/SmartBank/api');
 
+// Payment execution mode:
+// - mock: explicit local development payment (never contacts SmartBank)
+// - smartbank: real HTTP call; connection failures are returned as errors
+define('PAYMENT_MODE', getenv('PAYMENT_MODE') ?: 'mock');
+
 // API Gateway (bersama)
 define('GATEWAY_API_URL', 'http://localhost/APIGateway/api');
 

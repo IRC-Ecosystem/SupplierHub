@@ -45,7 +45,7 @@ foreach ($orders as $o) {
                 <tr><td colspan="7" class="py-8 text-center text-slate-500">Belum ada laporan tagihan.</td></tr>
             <?php else: foreach ($orders as $o): ?>
                 <tr class="border-b border-slate-100 hover:bg-slate-50">
-                    <td class="py-3 px-4"><div class="text-xs text-slate-500"><?= $o['completed_at'] ?></div><div class="font-mono text-sm font-bold text-slate-700"><?= $o['order_code'] ?></div></td>
+                    <td class="py-3 px-4"><div class="text-xs text-slate-500"><?= $o['paid_at'] ?? $o['completed_at'] ?></div><div class="font-mono text-sm font-bold text-slate-700"><?= $o['order_code'] ?></div></td>
                     <td class="py-3 px-4 text-sm font-medium text-slate-800"><?= htmlspecialchars($o['umkm_name']) ?></td>
                     <td class="py-3 px-4 text-sm font-bold text-slate-800">Rp <?= number_format($o['subtotal'],0,',','.') ?></td>
                     <td class="py-3 px-4 text-sm font-bold text-green-600">+ Rp <?= number_format($o['fee_supplier'],0,',','.') ?></td>

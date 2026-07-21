@@ -43,15 +43,48 @@ CREATE TABLE IF NOT EXISTS orders (
     order_code VARCHAR(30) NOT NULL UNIQUE,
     umkm_id INT NOT NULL,
     supplier_id INT NOT NULL,
-    status ENUM('pending', 'approved', 'completed', 'rejected') NOT NULL DEFAULT 'pending',
+    status ENUM('submitted', 'pending_payment', 'paid', 'payment_failed', 'processing', 'shipped', 'partially_received', 'received', 'completed', 'rejected', 'cancelled') NOT NULL DEFAULT 'submitted',
+    payment_status ENUM('unpaid', 'pending', 'paid', 'failed', 'refunded') NOT NULL DEFAULT 'unpaid',
     subtotal INT NOT NULL DEFAULT 0,
     fee_supplier INT NOT NULL DEFAULT 0,
     total INT NOT NULL DEFAULT 0,
     smartbank_ref VARCHAR(100) DEFAULT NULL,
+    resi_pengiriman VARCHAR(100) DEFAULT NULL,
+    idempotency_key VARCHAR(100) DEFAULT NULL,
+    paid_at DATETIME DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     completed_at DATETIME DEFAULT NULL,
     FOREIGN KEY (umkm_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (supplier_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (supplier_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_orders_umkm_idempotency (umkm_id, idempotency_key),
+    CHECK (subtotal >= 0 AND fee_supplier >= 0 AND total >= 0)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS order_status_history (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    from_status VARCHAR(40) DEFAULT NULL,
+    to_status VARCHAR(40) NOT NULL,
+    actor_user_id INT DEFAULT NULL,
+    reason VARCHAR(255) DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (actor_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_order_status_history_order (order_id, created_at)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS payment_attempts (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    idempotency_key VARCHAR(100) NOT NULL,
+    status ENUM('pending', 'succeeded', 'failed') NOT NULL DEFAULT 'pending',
+    payment_reference VARCHAR(100) DEFAULT NULL,
+    error_message VARCHAR(255) DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_payment_attempt_key (idempotency_key),
+    INDEX idx_payment_attempt_order (order_id)
 ) ENGINE=InnoDB;
 
 -- ========================================
@@ -64,7 +97,8 @@ CREATE TABLE IF NOT EXISTS order_items (
     qty INT NOT NULL DEFAULT 1,
     price_at_order INT NOT NULL DEFAULT 0,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (material_id) REFERENCES materials(id) ON DELETE CASCADE
+    FOREIGN KEY (material_id) REFERENCES materials(id) ON DELETE CASCADE,
+    CHECK (qty > 0 AND price_at_order >= 0)
 ) ENGINE=InnoDB;
 
 -- ========================================
@@ -93,7 +127,9 @@ CREATE TABLE IF NOT EXISTS payments (
     description VARCHAR(255),
     reference_id VARCHAR(100),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_payments_effect (user_id, type, reference_id),
+    CHECK (amount >= 0)
 ) ENGINE=InnoDB;
 
 -- ========================================
@@ -115,8 +151,8 @@ INSERT INTO materials (id, material_code, name, category, price, stock, unit, ic
 
 -- Incoming Orders (pending)
 INSERT INTO orders (id, order_code, umkm_id, supplier_id, status, subtotal, fee_supplier, total, created_at) VALUES
-(1, 'ORD-B2B-901', 2, 1, 'pending', 405000, 12150, 417150, '2026-04-24 10:15:00'),
-(2, 'ORD-B2B-902', 2, 1, 'pending', 1760000, 52800, 1812800, '2026-04-24 10:30:00');
+(1, 'ORD-B2B-901', 2, 1, 'submitted', 405000, 12150, 417150, '2026-04-24 10:15:00'),
+(2, 'ORD-B2B-902', 2, 1, 'submitted', 1760000, 52800, 1812800, '2026-04-24 10:30:00');
 
 -- Order Items for ORD-B2B-901
 INSERT INTO order_items (order_id, material_id, qty, price_at_order) VALUES
@@ -130,7 +166,7 @@ INSERT INTO order_items (order_id, material_id, qty, price_at_order) VALUES
 
 -- Completed Order History
 INSERT INTO orders (id, order_code, umkm_id, supplier_id, status, subtotal, fee_supplier, total, smartbank_ref, created_at, completed_at) VALUES
-(3, 'ORD-B2B-881', 2, 1, 'completed', 150000, 4500, 154500, 'SB-REF-20260420-001', '2026-04-20 10:00:00', '2026-04-20 10:35:00');
+(3, 'ORD-B2B-881', 2, 1, 'paid', 150000, 4500, 154500, 'SB-REF-20260420-001', '2026-04-20 10:00:00', '2026-04-20 10:35:00');
 
 INSERT INTO order_items (order_id, material_id, qty, price_at_order) VALUES
 (3, 1, 10, 12000),

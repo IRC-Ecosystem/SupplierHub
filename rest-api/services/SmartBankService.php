@@ -47,6 +47,14 @@ class SmartBankService implements PaymentServiceInterface {
         // Route melalui API Gateway (Aturan #5)
         $payload = GatewayMiddleware::process($payload);
 
+        if (PAYMENT_MODE === 'mock') {
+            return self::simulateResponse('/smartbank/pembayaran_transaksi', $payload);
+        }
+
+        if (PAYMENT_MODE !== 'smartbank') {
+            return ['status' => 'error', 'message' => 'PAYMENT_MODE tidak valid.'];
+        }
+
         // Coba panggil SmartBank API
         $response = self::callSmartBankAPI('/smartbank/pembayaran_transaksi', $payload);
 
@@ -83,6 +91,7 @@ class SmartBankService implements PaymentServiceInterface {
 
         $result = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
         curl_close($ch);
 
         // Jika SmartBank API reachable
@@ -93,8 +102,13 @@ class SmartBankService implements PaymentServiceInterface {
             }
         }
 
-        // Fallback: Simulasi response SmartBank (saat offline)
-        return self::simulateResponse($endpoint, $data);
+        return [
+            'status' => 'error',
+            'message' => $error
+                ? 'SmartBank tidak dapat dihubungi: ' . $error
+                : 'SmartBank mengembalikan HTTP ' . $httpCode,
+            'data' => ['http_code' => $httpCode]
+        ];
     }
 
     /**
