@@ -10,6 +10,7 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="<?= BASE_URL ?>/assets/css/professional.css" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -36,4 +37,4 @@
         .modal-enter-active { opacity: 1; transform: scale(1); transition: all 0.2s ease-out; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans h-screen flex overflow-hidden">
+<body class="app-shell role-<?= htmlspecialchars($userRole ?? 'public') ?> bg-slate-50 text-slate-800 font-sans h-screen flex overflow-hidden">

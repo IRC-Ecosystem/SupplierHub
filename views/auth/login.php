@@ -15,6 +15,7 @@ $pageTitle = 'Masuk / Daftar - B2BLink';
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="<?= BASE_URL ?>/assets/css/professional.css" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
@@ -33,7 +34,7 @@ $pageTitle = 'Masuk / Daftar - B2BLink';
         .text-gradient { background-clip:text; -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
     </style>
 </head>
-<body class="bg-slate-50 font-sans min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-x-hidden selection:bg-brand-500 selection:text-white">
+<body class="auth-page bg-slate-50 font-sans min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-x-hidden">
     <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
         <div class="absolute inset-0 bg-grid-pattern opacity-40"></div>
         <div class="absolute -top-[20%] -right-[10%] w-[60%] h-[60%] bg-blue-400 rounded-full mix-blend-multiply filter blur-[128px] opacity-30 animate-pulse-slow"></div>
@@ -66,17 +67,17 @@ $pageTitle = 'Masuk / Daftar - B2BLink';
                 <div class="relative z-10">
                     <div class="flex items-center gap-3 mb-12 lg:mb-16 cursor-pointer group" onclick="window.location.href='landingpage.html'">
                         <div class="w-12 h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/30 transform group-hover:scale-105 transition-transform"><i class="ph-fill ph-intersect text-3xl text-white"></i></div>
-                        <span class="font-extrabold text-2xl tracking-tight">B2B<span class="text-brand-400">Link</span></span>
+                        <span class="font-extrabold text-2xl tracking-tight">SupplierHub</span>
                     </div>
                     <div>
-                        <h2 class="text-3xl lg:text-4xl font-extrabold mb-4 lg:mb-6 leading-tight" id="side-title">Selamat Datang Kembali</h2>
-                        <p class="text-slate-300 text-sm lg:text-base leading-relaxed font-medium" id="side-desc">Akses portal Anda untuk mengelola pengadaan, memantau stok, dan memproses pembayaran otomatis melalui SmartBank secara real-time.</p>
+                        <h2 class="text-3xl lg:text-4xl font-extrabold mb-4 lg:mb-6 leading-tight" id="side-title">Pengadaan yang lebih tertata</h2>
+                        <p class="text-slate-300 text-sm lg:text-base leading-relaxed font-medium" id="side-desc">Kelola katalog, pesanan supplier, dan status pembayaran dalam satu ruang kerja.</p>
                     </div>
                 </div>
                 <div class="relative z-10 bg-white/5 backdrop-blur-xl p-5 lg:p-6 rounded-3xl border border-white/10 shadow-2xl mt-8">
                     <div class="flex items-start gap-4">
                         <div class="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10"><i class="ph-fill ph-shield-check text-xl lg:text-2xl text-emerald-400" id="security-icon"></i></div>
-                        <div><p class="text-sm font-bold text-white mb-1">Keamanan Tingkat Lanjut</p><p class="text-xs text-slate-300 leading-relaxed font-medium">Transaksi dan data dilindungi oleh enkripsi End-to-End standar perbankan.</p></div>
+                        <div><p class="text-sm font-bold text-white mb-1">Akses berbasis peran</p><p class="text-xs text-slate-300 leading-relaxed font-medium">Portal menyesuaikan akses untuk akun UMKM dan supplier.</p></div>
                     </div>
                 </div>
             </div>
@@ -85,7 +86,7 @@ $pageTitle = 'Masuk / Daftar - B2BLink';
             <div class="w-full md:w-7/12 p-6 sm:p-8 lg:p-14 relative flex flex-col justify-center bg-white/40">
                 <div class="flex items-center justify-center gap-2 mb-8 md:hidden cursor-pointer" onclick="window.location.href='landingpage.html'">
                     <div class="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/30 text-white"><i class="ph-fill ph-intersect text-2xl"></i></div>
-                    <span class="font-extrabold text-2xl text-slate-900 tracking-tight">B2B<span class="text-brand-600">Link</span></span>
+                    <span class="font-extrabold text-2xl text-slate-900 tracking-tight">SupplierHub</span>
                 </div>
 
                 <!-- Tab Toggle -->

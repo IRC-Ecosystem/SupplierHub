@@ -85,29 +85,15 @@ if ($p === 'supplier') {
     <!-- Main Content -->
     <main class="flex-1 flex flex-col overflow-hidden relative">
         <!-- Topbar -->
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10">
-            <div class="hidden md:flex items-center text-sm">
-                <span class="bg-slate-100 text-slate-600 py-1 px-3 rounded-full flex items-center border border-slate-200">
-                    <span class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
-                    API Gateway Connected
-                </span>
-            </div>
-            <div class="flex items-center space-x-4">
-                <!-- Auto Refresh Status -->
-                <div class="flex items-center text-[11px] text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-semibold transition-all hover:bg-slate-100">
-                    <span class="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2 animate-ping" id="refresh-dot"></span>
-                    <i class="ph-bold ph-arrows-clockwise mr-1.5 text-slate-400 animate-spin" id="refresh-icon"></i>
-                    <span class="mr-1 hidden sm:inline">Auto Refresh:</span>
-                    <span id="refresh-timer" class="text-[10px] text-slate-600 font-mono">1:00</span>
-                </div>
-                <button class="relative text-slate-400 hover:text-slate-600"><i class="ph ph-bell text-xl"></i>
-                    <?php if ($pendingCount > 0): ?><span class="absolute top-0 right-0 -mt-1 -mr-1 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span><?php endif; ?>
-                </button>
-                <a href="logout.php" class="text-red-500 hover:text-red-700 flex items-center text-sm font-medium transition-colors bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg"><i class="ph ph-sign-out text-lg mr-1.5"></i> Keluar</a>
+        <header class="app-topbar border-b flex items-center justify-between z-10">
+            <div><div class="app-topbar-title">Portal Supplier</div><div class="app-topbar-meta">Kelola produk, pesanan, dan pembayaran</div></div>
+            <div class="app-topbar-actions">
+                <button class="app-icon-button" aria-label="Notifikasi"><i class="ph ph-bell"></i></button>
+                <a href="logout.php" class="app-logout"><i class="ph ph-sign-out"></i> Keluar</a>
             </div>
         </header>
         <!-- Content Area -->
-        <div class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50">
+        <div class="app-content flex-1 overflow-y-auto">
             <?php
             switch ($currentPage) {
                 case 'manajemen': require __DIR__ . '/views/supplier/manajemen.php'; break;
@@ -139,24 +125,14 @@ if ($p === 'umkm') {
     require __DIR__ . '/views/layouts/sidebar_umkm.php';
     ?>
     <main class="flex-1 flex flex-col overflow-hidden relative">
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10">
-            <div class="hidden md:flex items-center text-sm text-slate-500">
-                <i class="ph ph-shield-check text-primary text-lg mr-2"></i>
-                Sistem Terkoneksi: <span class="text-slate-700 font-semibold ml-1">API Gateway & SmartBank</span>
-            </div>
-            <div class="flex items-center space-x-4">
-                <!-- Auto Refresh Status -->
-                <div class="flex items-center text-[11px] text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-semibold transition-all hover:bg-slate-100">
-                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-2 animate-ping" id="refresh-dot"></span>
-                    <i class="ph-bold ph-arrows-clockwise mr-1.5 text-slate-400 animate-spin" id="refresh-icon"></i>
-                    <span class="mr-1 hidden sm:inline">Auto Refresh:</span>
-                    <span id="refresh-timer" class="text-[10px] text-slate-600 font-mono">1:00</span>
-                </div>
-                <button class="relative text-slate-400 hover:text-slate-600"><i class="ph ph-bell text-xl"></i></button>
-                <a href="logout.php" class="text-red-500 hover:text-red-700 flex items-center text-sm font-medium transition-colors bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg"><i class="ph ph-sign-out text-lg mr-1.5"></i> Keluar</a>
+        <header class="app-topbar border-b flex items-center justify-between z-10">
+            <div><div class="app-topbar-title">Portal Pengadaan</div><div class="app-topbar-meta">Pengadaan bahan baku untuk <?= htmlspecialchars($userName) ?></div></div>
+            <div class="app-topbar-actions">
+                <button class="app-icon-button" aria-label="Notifikasi"><i class="ph ph-bell"></i></button>
+                <a href="logout.php" class="app-logout"><i class="ph ph-sign-out"></i> Keluar</a>
             </div>
         </header>
-        <div class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50">
+        <div class="app-content flex-1 overflow-y-auto">
             <?php
             switch ($currentPage) {
                 case 'katalog':   require __DIR__ . '/views/umkm/katalog.php'; break;
