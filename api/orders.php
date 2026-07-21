@@ -21,7 +21,9 @@ require_once __DIR__ . '/../helpers/ApiResponse.php';
 require_once __DIR__ . '/../models/Procurement.php';
 
 GatewayMiddleware::addResponseHeaders();
-if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') CsrfMiddleware::verify();
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+    CsrfMiddleware::verify();
+}
 
 $action = $_GET['action'] ?? '';
 $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
@@ -34,27 +36,35 @@ switch ($action) {
     case 'add_cart':
         $user = AuthMiddleware::requireAuth('umkm');
         $userId = $user['user_id'];
-        if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
+        if (!isset($_SESSION['cart'])) {
+            $_SESSION['cart'] = [];
+        }
         $matId = $input['material_id'] ?? 0;
         $qty = $input['qty'] ?? 1;
         $found = false;
         foreach ($_SESSION['cart'] as &$ci) {
-            if ($ci['material_id'] == $matId) { $ci['qty'] += $qty; $found = true; break; }
+            if ($ci['material_id'] == $matId) {
+                $ci['qty'] += $qty;
+                $found = true;
+                break;
+            }
         }
         unset($ci);
-        if (!$found) $_SESSION['cart'][] = ['material_id' => $matId, 'qty' => $qty];
-        
+        if (!$found) {
+            $_SESSION['cart'][] = ['material_id' => $matId, 'qty' => $qty];
+        }
+
         // Clear bundle discount since user modified the cart manually
         unset($_SESSION['bundle_discount']);
         unset($_SESSION['bundle_name']);
-        
+
         $response = ['status' => 'success', 'message' => 'Ditambahkan ke keranjang.'];
         break;
 
     case 'add_bundle':
         $user = AuthMiddleware::requireAuth('umkm');
         $userId = $user['user_id'];
-        
+
         // Clear existing cart to hold only bundle items
         $_SESSION['cart'] = [];
         $items = $input['items'] ?? [];
@@ -66,7 +76,7 @@ switch ($action) {
         }
         $_SESSION['bundle_discount'] = (int)($input['discount'] ?? 0);
         $_SESSION['bundle_name'] = $input['bundle_name'] ?? '';
-        
+
         $response = ['status' => 'success', 'message' => 'Paket bundling berhasil dipindahkan ke keranjang belanja Anda.'];
         break;
 
@@ -75,21 +85,21 @@ switch ($action) {
         $userId = $user['user_id'];
         $type = $input['subscription_type'] ?? '';
         $price = (int)($input['price'] ?? 0);
-        
+
         if ($type !== 'vip' && $type !== 'gold') {
             $response = ['status' => 'error', 'message' => 'Tipe langganan tidak valid.'];
             break;
         }
-        
+
         $_SESSION['subscription'] = $type;
-        
+
         $response = [
-            'status' => 'success', 
+            'status' => 'success',
             'message' => 'Langganan B2B ' . strtoupper($type) . ' Berhasil Diaktifkan!',
             'data' => [
                 'type' => $type,
                 'price' => $price,
-                'ref' => 'SB-SUB-' . date('Ymd') . '-' . rand(1000, 9999)
+                'ref' => 'SB-SUB-' . date('Ymd') . '-' . random_int(1000, 9999)
             ]
         ];
         break;
@@ -97,7 +107,7 @@ switch ($action) {
     case 'cancel_subscription':
         $user = AuthMiddleware::requireAuth('umkm');
         $userId = $user['user_id'];
-        
+
         if (isset($_SESSION['subscription'])) {
             $oldType = $_SESSION['subscription'];
             unset($_SESSION['subscription']);
@@ -185,17 +195,30 @@ switch ($action) {
     case 'cart_update':
         $user = AuthMiddleware::requireAuth('umkm');
         $userId = $user['user_id'];
-        if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
+        if (!isset($_SESSION['cart'])) {
+            $_SESSION['cart'] = [];
+        }
         $cartAction = $input['cart_action'] ?? '';
         $idx = (int)($input['idx'] ?? -1);
         if ($cartAction === 'clear') {
             $_SESSION['cart'] = [];
         } elseif ($idx >= 0 && isset($_SESSION['cart'][$idx])) {
-            if ($cartAction === 'increase') $_SESSION['cart'][$idx]['qty']++;
-            elseif ($cartAction === 'decrease') $_SESSION['cart'][$idx]['qty']--;
-            elseif ($cartAction === 'update') $_SESSION['cart'][$idx]['qty'] = (int)($input['qty'] ?? 0);
-            else { $response = ['status'=>'error','message'=>'Aksi keranjang tidak valid.']; break; }
-            if ($_SESSION['cart'][$idx]['qty'] <= 0) array_splice($_SESSION['cart'], $idx, 1);
+            if ($cartAction === 'increase') {
+                $_SESSION['cart'][$idx]['qty']++;
+            }
+            elseif ($cartAction === 'decrease') {
+                $_SESSION['cart'][$idx]['qty']--;
+            }
+            elseif ($cartAction === 'update') {
+                $_SESSION['cart'][$idx]['qty'] = (int)($input['qty'] ?? 0);
+            }
+            else {
+                $response = ['status'=>'error','message'=>'Aksi keranjang tidak valid.'];
+                break;
+            }
+            if ($_SESSION['cart'][$idx]['qty'] <= 0) {
+                array_splice($_SESSION['cart'], $idx, 1);
+            }
         } else {
             $response = ['status'=>'error','message'=>'Item keranjang tidak ditemukan.'];
             break;
