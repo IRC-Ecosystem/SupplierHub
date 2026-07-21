@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../../middleware/CsrfMiddleware.php'; ?>
     <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
@@ -22,7 +23,10 @@
         async function apiCall(url, method = 'GET', data = null) {
             const options = {
                 method,
-                headers: { 'Content-Type': 'application/json' }
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': <?= json_encode(CsrfMiddleware::token()) ?>
+                }
             };
             if (data && method !== 'GET') {
                 options.body = JSON.stringify(data);

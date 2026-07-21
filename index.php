@@ -60,38 +60,9 @@ $currentPage = $_GET['page'] ?? 'dashboard';
 // CART ACTIONS (UMKM)
 // ============================================
 if ($p === 'umkm' && isset($_GET['cart_action'])) {
-    $action = $_GET['cart_action'];
-    $idx = (int)($_GET['idx'] ?? 0);
-    
-    if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
-    
-    if ($action === 'increase' && isset($_SESSION['cart'][$idx])) {
-        $_SESSION['cart'][$idx]['qty']++;
-        unset($_SESSION['bundle_discount']);
-        unset($_SESSION['bundle_name']);
-    } elseif ($action === 'decrease' && isset($_SESSION['cart'][$idx])) {
-        $_SESSION['cart'][$idx]['qty']--;
-        if ($_SESSION['cart'][$idx]['qty'] <= 0) {
-            array_splice($_SESSION['cart'], $idx, 1);
-        }
-        unset($_SESSION['bundle_discount']);
-        unset($_SESSION['bundle_name']);
-    } elseif ($action === 'update' && isset($_SESSION['cart'][$idx])) {
-        $qty = (int)($_GET['qty'] ?? 1);
-        if ($qty <= 0) {
-            array_splice($_SESSION['cart'], $idx, 1);
-        } else {
-            $_SESSION['cart'][$idx]['qty'] = $qty;
-        }
-        unset($_SESSION['bundle_discount']);
-        unset($_SESSION['bundle_name']);
-    } elseif ($action === 'clear') {
-        $_SESSION['cart'] = [];
-        unset($_SESSION['bundle_discount']);
-        unset($_SESSION['bundle_name']);
-    }
-    
-    header('Location: index.php?p=umkm&page=keranjang');
+    http_response_code(405);
+    header('Allow: POST');
+    echo 'Perubahan keranjang melalui GET dinonaktifkan.';
     exit;
 }
 

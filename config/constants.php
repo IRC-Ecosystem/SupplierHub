@@ -11,19 +11,25 @@ define('FEE_BANK', 0.01);           // 1% fee SmartBank
 define('SALDO_AWAL', 50000);        // Rp 50.000 saldo awal user
 
 // JWT Configuration
-define('JWT_SECRET', 'supplierhub_b2b_secret_key_2026');
-define('JWT_EXPIRY', 86400); // 24 hours
+define('APP_ENV', getenv('SUPPLIERHUB_APP_ENV') ?: 'local');
+$jwtSecret = getenv('SUPPLIERHUB_JWT_SECRET') ?: 'local-dev-change-this-secret';
+if (APP_ENV === 'production' && $jwtSecret === 'local-dev-change-this-secret') {
+    throw new RuntimeException('SUPPLIERHUB_JWT_SECRET wajib diatur pada production.');
+}
+define('JWT_SECRET', $jwtSecret);
+unset($jwtSecret);
+define('JWT_EXPIRY', (int)(getenv('SUPPLIERHUB_JWT_EXPIRY') ?: 86400));
 
 // SmartBank API (kelompok lain)
-define('SMARTBANK_API_URL', 'http://localhost/SmartBank/api');
+define('SMARTBANK_API_URL', getenv('SMARTBANK_API_URL') ?: 'http://localhost/SmartBank/api');
 
 // Payment execution mode:
 // - mock: explicit local development payment (never contacts SmartBank)
 // - smartbank: real HTTP call; connection failures are returned as errors
-define('PAYMENT_MODE', getenv('PAYMENT_MODE') ?: 'mock');
+define('PAYMENT_MODE', getenv('PAYMENT_MODE') ?: 'pending');
 
 // API Gateway (bersama)
-define('GATEWAY_API_URL', 'http://localhost/APIGateway/api');
+define('GATEWAY_API_URL', getenv('GATEWAY_API_URL') ?: 'http://localhost/APIGateway/api');
 
 // Application
 define('APP_NAME', 'SupplierHub B2B');

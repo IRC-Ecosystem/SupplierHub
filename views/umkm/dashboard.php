@@ -663,14 +663,10 @@ async function processSubPayment() {
     const BASE_API = '<?= rtrim(dirname($_SERVER["SCRIPT_NAME"]),"/\\") ?>';
 
     try {
-        const response = await fetch(BASE_API + '/api/orders.php?action=subscribe', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                subscription_type: subCheckoutState.type,
-                price: subCheckoutState.price
-            })
-        }).then(r => r.json());
+        const response = await apiCall(BASE_API + '/api/orders.php?action=subscribe', 'POST', {
+            subscription_type: subCheckoutState.type,
+            price: subCheckoutState.price
+        });
 
         await new Promise(r => setTimeout(r, 800));
 
@@ -709,10 +705,7 @@ async function cancelSubscription(type) {
     const BASE_API = '<?= rtrim(dirname($_SERVER["SCRIPT_NAME"]),"/\\") ?>';
     
     try {
-        const response = await fetch(BASE_API + '/api/orders.php?action=cancel_subscription', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        }).then(r => r.json());
+        const response = await apiCall(BASE_API + '/api/orders.php?action=cancel_subscription', 'POST', {});
         
         if (response.status === 'success') {
             showToast(response.message, 'success');

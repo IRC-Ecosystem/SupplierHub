@@ -11,14 +11,16 @@
  */
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
 
 require_once __DIR__ . '/../controllers/OrderController.php';
 require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../middleware/LoggerMiddleware.php';
 require_once __DIR__ . '/../middleware/GatewayMiddleware.php';
+require_once __DIR__ . '/../middleware/CsrfMiddleware.php';
+require_once __DIR__ . '/../helpers/ApiResponse.php';
 
 GatewayMiddleware::addResponseHeaders();
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') CsrfMiddleware::verify();
 
 $action = $_GET['action'] ?? '';
 $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
@@ -179,6 +181,28 @@ switch ($action) {
         $response = OrderController::approve($orderId, $userId, $resiPengiriman);
         break;
 
+    case 'cart_update':
+        $user = AuthMiddleware::requireAuth('umkm');
+        $userId = $user['user_id'];
+        if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
+        $cartAction = $input['cart_action'] ?? '';
+        $idx = (int)($input['idx'] ?? -1);
+        if ($cartAction === 'clear') {
+            $_SESSION['cart'] = [];
+        } elseif ($idx >= 0 && isset($_SESSION['cart'][$idx])) {
+            if ($cartAction === 'increase') $_SESSION['cart'][$idx]['qty']++;
+            elseif ($cartAction === 'decrease') $_SESSION['cart'][$idx]['qty']--;
+            elseif ($cartAction === 'update') $_SESSION['cart'][$idx]['qty'] = (int)($input['qty'] ?? 0);
+            else { $response = ['status'=>'error','message'=>'Aksi keranjang tidak valid.']; break; }
+            if ($_SESSION['cart'][$idx]['qty'] <= 0) array_splice($_SESSION['cart'], $idx, 1);
+        } else {
+            $response = ['status'=>'error','message'=>'Item keranjang tidak ditemukan.'];
+            break;
+        }
+        unset($_SESSION['bundle_discount'], $_SESSION['bundle_name'], $_SESSION['checkout_idempotency_key']);
+        $response = ['status'=>'success','message'=>'Keranjang diperbarui.'];
+        break;
+
     case 'request_payment':
         $user = AuthMiddleware::requireAuth('umkm');
         $userId = $user['user_id'];
@@ -212,4 +236,6 @@ switch ($action) {
 
 LoggerMiddleware::log('/api/orders.php?action=' . $action, $userId, $requestData, $response);
 
+$response = ApiResponse::normalize($response);
+http_response_code(ApiResponse::codeFor($response));
 echo json_encode($response);

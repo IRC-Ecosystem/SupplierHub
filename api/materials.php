@@ -10,14 +10,16 @@
  */
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
 
 require_once __DIR__ . '/../controllers/MaterialController.php';
 require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../middleware/LoggerMiddleware.php';
 require_once __DIR__ . '/../middleware/GatewayMiddleware.php';
+require_once __DIR__ . '/../middleware/CsrfMiddleware.php';
+require_once __DIR__ . '/../helpers/ApiResponse.php';
 
 GatewayMiddleware::addResponseHeaders();
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') CsrfMiddleware::verify();
 
 $action = $_GET['action'] ?? '';
 $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
@@ -68,4 +70,6 @@ switch ($action) {
 $userId = $user['user_id'] ?? null;
 LoggerMiddleware::log('/api/materials.php?action=' . $action, $userId, $requestData, $response);
 
+$response = ApiResponse::normalize($response);
+http_response_code(ApiResponse::codeFor($response));
 echo json_encode($response);

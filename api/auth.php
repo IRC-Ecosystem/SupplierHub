@@ -6,12 +6,12 @@
  */
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 
 require_once __DIR__ . '/../controllers/AuthController.php';
 require_once __DIR__ . '/../middleware/LoggerMiddleware.php';
 require_once __DIR__ . '/../middleware/GatewayMiddleware.php';
+require_once __DIR__ . '/../helpers/ApiResponse.php';
 
 GatewayMiddleware::addResponseHeaders();
 
@@ -42,4 +42,6 @@ LoggerMiddleware::log(
     $response
 );
 
+$response = ApiResponse::normalize($response);
+http_response_code(ApiResponse::codeFor($response, $action === 'register' ? 201 : 200));
 echo json_encode($response);

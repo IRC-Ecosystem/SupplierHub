@@ -69,6 +69,7 @@ class OrderController {
      * Controller hanya: validasi input → panggil Service → kirim response
      */
     public static function store($user) {
+        Response::error('Endpoint write REST lama dinonaktifkan. Gunakan alur utama /api/orders.php?action=checkout.', 410);
         AuthMiddleware::requireRole($user, 'umkm');
 
         $input = Validator::getJsonBody();
@@ -109,6 +110,7 @@ class OrderController {
      * SESUDAH refactor: 1 panggilan ke OrderService::processApproval()
      */
     public static function approve($user, $id) {
+        Response::error('Endpoint approve REST lama dinonaktifkan. Gunakan alur utama /api/orders.php?action=approve.', 410);
         AuthMiddleware::requireRole($user, 'supplier');
 
         try {
@@ -125,6 +127,7 @@ class OrderController {
      * Reject order (Supplier only)
      */
     public static function reject($user, $id) {
+        Response::error('Endpoint reject REST lama dinonaktifkan. Gunakan alur utama /api/orders.php?action=reject.', 410);
         AuthMiddleware::requireRole($user, 'supplier');
 
         $order = OrderService::findById($id);

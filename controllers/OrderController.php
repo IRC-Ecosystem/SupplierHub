@@ -94,7 +94,14 @@ class OrderController {
                 $subtotal += (int)$mat['price'] * $qty;
                 $validated[] = ['material_id'=>$matId,'qty'=>$qty,'price'=>(int)$mat['price']];
             }
-            $discount = max(0, (int)($data['discount'] ?? 0));
+            // Discount is computed exclusively from server-side session rules.
+            $subscription = $_SESSION['subscription'] ?? '';
+            $subscriptionRate = $subscription === 'gold' ? 0.10 : ($subscription === 'vip' ? 0.05 : 0.0);
+            $subscriptionDiscount = (int)round($subtotal * $subscriptionRate);
+            $requestedBundleDiscount = max(0, (int)($_SESSION['bundle_discount'] ?? 0));
+            $bundleDiscountCap = (int)round($subtotal * 0.05);
+            $bundleDiscount = min($requestedBundleDiscount, $bundleDiscountCap);
+            $discount = $subscriptionDiscount + $bundleDiscount;
             $fee = (int)round($subtotal * FEE_SUPPLIER);
             $total = max(0, $subtotal + $fee - $discount);
             $code = 'ORD-B2B-' . strtoupper(substr(bin2hex(random_bytes(6)), 0, 9));
@@ -579,7 +586,10 @@ class OrderController {
             return ['status' => 'error', 'message' => 'Pesanan tidak ditemukan.'];
         }
 
-        Order::reject($order_id);
+        if (!Order::reject($order_id)) {
+            return ['status'=>'error','message'=>'Status pesanan sudah diproses sebelumnya.'];
+        }
+        Order::addStatusHistory($order_id, $order['status'], 'rejected', $supplier_id, 'Supplier menolak pesanan');
         return [
             'status'  => 'success',
             'message' => 'Pesanan berhasil ditolak.'

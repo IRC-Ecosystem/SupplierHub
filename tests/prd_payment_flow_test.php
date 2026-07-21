@@ -16,12 +16,14 @@ try {
     $created = OrderController::directCheckout([
         'supplier_id' => 1,
         'items' => [['material_id' => 1, 'qty' => 1]],
+        'discount' => 999999999,
         'idempotency_key' => $key
     ], 2);
     assertFlow($created['status'] === 'success', 'Checkout gagal.');
     $orderId = (int)$created['data']['order_id'];
     $order = Order::findById($orderId);
     assertFlow($order['status'] === 'submitted' && $order['payment_status'] === 'unpaid', 'Checkout harus SUBMITTED/UNPAID.');
+    assertFlow((int)$order['total'] === 12360, 'Diskon dari client tidak boleh mengubah total server.');
     assertFlow((int)$db->query("SELECT stock FROM materials WHERE id=1")->fetchColumn() === $before, 'Checkout tidak boleh mengurangi stok.');
 
     $accepted = OrderController::approve($orderId, 1);

@@ -67,11 +67,6 @@ class AuthMiddleware {
             return $matches[1];
         }
 
-        // Fallback: query parameter (untuk testing)
-        if (isset($_GET['token'])) {
-            return $_GET['token'];
-        }
-
         return null;
     }
 }

@@ -66,9 +66,9 @@ input[type=number]::-webkit-outer-spin-button {
             </div>
             <div class="flex items-center">
                 <div class="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-slate-50 mr-4">
-                    <a href="index.php?p=umkm&page=keranjang&cart_action=decrease&idx=<?= $idx ?>" class="px-3 py-1 hover:bg-slate-200 text-slate-600 font-bold transition-colors">-</a>
+                    <button onclick="changeCart(<?= $idx ?>,'decrease')" class="px-3 py-1 hover:bg-slate-200 text-slate-600 font-bold transition-colors">-</button>
                     <input type="number" min="1" value="<?= $item['cart_qty'] ?>" onchange="updateQty(<?= $idx ?>, this.value)" class="w-12 py-1 bg-white text-sm font-bold text-center border-y-0 border-x border-slate-200 focus:outline-none" style="-moz-appearance: textfield; margin: 0;">
-                    <a href="index.php?p=umkm&page=keranjang&cart_action=increase&idx=<?= $idx ?>" class="px-3 py-1 hover:bg-slate-200 text-slate-600 font-bold transition-colors">+</a>
+                    <button onclick="changeCart(<?= $idx ?>,'increase')" class="px-3 py-1 hover:bg-slate-200 text-slate-600 font-bold transition-colors">+</button>
                 </div>
                 <div class="w-24 text-right"><div class="font-bold text-slate-800 text-sm">Rp <?= number_format($item['item_total'],0,',','.') ?></div></div>
             </div>
@@ -191,9 +191,14 @@ let cartState = {
 };
 const checkoutIdempotencyKey = <?= json_encode($_SESSION['checkout_idempotency_key']) ?>;
 
+async function changeCart(idx, cartAction, qty = null) {
+    const result = await apiCall(BASE+'/api/orders.php?action=cart_update','POST',{cart_action:cartAction,idx,qty});
+    if (result.status === 'success') location.reload(); else showToast(result.message,'error');
+}
+
 function clearCart() {
     if (confirm('Apakah Anda yakin ingin mengosongkan seluruh isi keranjang belanja Anda?')) {
-        window.location.href = 'index.php?p=umkm&page=keranjang&cart_action=clear';
+        changeCart(-1, 'clear');
     }
 }
 
@@ -273,12 +278,12 @@ function updateQty(idx, val) {
     const qty = parseInt(val);
     if (isNaN(qty) || qty <= 0) {
         if (confirm('Apakah Anda yakin ingin menghapus bahan baku ini dari keranjang belanja?')) {
-            window.location.href = 'index.php?p=umkm&page=keranjang&cart_action=update&idx=' + idx + '&qty=0';
+            changeCart(idx, 'update', 0);
         } else {
             window.location.reload();
         }
     } else {
-        window.location.href = 'index.php?p=umkm&page=keranjang&cart_action=update&idx=' + idx + '&qty=' + qty;
+        changeCart(idx, 'update', qty);
     }
 }
 </script>

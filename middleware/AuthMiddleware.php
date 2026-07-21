@@ -140,6 +140,7 @@ class AuthMiddleware {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+        session_regenerate_id(true);
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['email']   = $user['email'];
         $_SESSION['role']    = $user['role'];
@@ -165,11 +166,6 @@ class AuthMiddleware {
 
         if ($headers && preg_match('/Bearer\s(\S+)/', $headers, $matches)) {
             return $matches[1];
-        }
-
-        // Also check query parameter (fallback for testing)
-        if (isset($_GET['token'])) {
-            return $_GET['token'];
         }
 
         return null;

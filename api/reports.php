@@ -6,12 +6,12 @@
  */
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
 
 require_once __DIR__ . '/../controllers/DashboardController.php';
 require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../middleware/LoggerMiddleware.php';
 require_once __DIR__ . '/../middleware/GatewayMiddleware.php';
+require_once __DIR__ . '/../helpers/ApiResponse.php';
 
 GatewayMiddleware::addResponseHeaders();
 
@@ -39,4 +39,6 @@ switch ($action) {
 
 LoggerMiddleware::log('/api/reports.php?action=' . $action, $userId, null, $response);
 
+$response = ApiResponse::normalize($response);
+http_response_code(ApiResponse::codeFor($response));
 echo json_encode($response);

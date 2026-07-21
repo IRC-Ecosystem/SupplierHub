@@ -4,10 +4,10 @@
  * SupplierHub B2B Application
  */
 
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'supplierhub_db');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_HOST', getenv('SUPPLIERHUB_DB_HOST') ?: 'localhost');
+define('DB_NAME', getenv('SUPPLIERHUB_DB_NAME') ?: 'supplierhub_db');
+define('DB_USER', getenv('SUPPLIERHUB_DB_USER') ?: 'root');
+define('DB_PASS', getenv('SUPPLIERHUB_DB_PASS') !== false ? getenv('SUPPLIERHUB_DB_PASS') : '');
 
 function getDB() {
     static $pdo = null;
