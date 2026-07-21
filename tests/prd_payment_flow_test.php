@@ -63,6 +63,8 @@ try {
         $stmt->execute(['ref'=>$paymentRef]);
     }
     if ($orderId) {
+        $stmt = $db->prepare("DELETE FROM outbox_events WHERE aggregate_type='supplier_order' AND aggregate_id=:id");
+        $stmt->execute(['id'=>(string)$orderId]);
         $stmt = $db->prepare("DELETE FROM orders WHERE id=:id AND idempotency_key=:ikey");
         $stmt->execute(['id'=>$orderId,'ikey'=>$key]);
     }

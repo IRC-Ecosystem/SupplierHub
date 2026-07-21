@@ -18,6 +18,7 @@
         <a href="index.php?p=supplier&page=manajemen" class="app-nav-link <?= ($currentPage ?? '') === 'manajemen' ? 'active' : '' ?>">
             <i class="ph ph-package"></i><span>Produk &amp; stok</span>
         </a>
+        <a href="index.php?p=supplier&page=profil" class="app-nav-link <?= ($currentPage ?? '') === 'profil' ? 'active' : '' ?>"><i class="ph ph-identification-card"></i><span>Profil & performa</span></a>
         <div class="app-nav-label mt-5">Pelaporan</div>
         <a href="index.php?p=supplier&page=laporan" class="app-nav-link <?= ($currentPage ?? '') === 'laporan' ? 'active' : '' ?>">
             <i class="ph ph-chart-line"></i><span>Laporan penjualan</span>

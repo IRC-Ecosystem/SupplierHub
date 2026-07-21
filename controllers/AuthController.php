@@ -46,9 +46,9 @@ class AuthController {
                 'name'     => $user['name'],
                 'email'    => $user['email'],
                 'role'     => $user['role'],
-                'redirect' => $user['role'] === 'supplier' 
-                    ? BASE_URL . '/index.php?p=supplier' 
-                    : BASE_URL . '/index.php?p=umkm'
+                'redirect' => $user['role'] === 'integrator'
+                    ? BASE_URL . '/index.php?p=integrator'
+                    : ($user['role'] === 'supplier' ? BASE_URL . '/index.php?p=supplier' : BASE_URL . '/index.php?p=umkm')
             ]
         ];
     }

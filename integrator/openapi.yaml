@@ -1,0 +1,204 @@
+openapi: 3.0.3
+info:
+  title: B2BLink Integration API
+  version: 1.0.0-local
+  description: |
+    Kontrak integrasi SupplierHub dengan SmartBank, LogistiKita, dan UMKM Insight.
+    Endpoint bertanda **Local active** dapat dipakai pada instalasi ini. Webhook eksternal
+    membutuhkan header `X-B2BLink-Signature` berisi HMAC-SHA256 body menggunakan
+    `INTEGRATION_WEBHOOK_SECRET`.
+servers:
+  - url: /SupplierHub
+    description: SupplierHub lokal
+tags:
+  - name: Integrator
+    description: Status dan observasi integrasi
+  - name: SupplierHub
+    description: Order dan procurement SupplierHub
+  - name: SmartBank
+    description: Callback verifikasi pembayaran
+  - name: LogistiKita
+    description: Event shipment inbound
+  - name: UMKM Insight
+    description: Read-only procurement projection
+  - name: Outbox
+    description: Event yang siap dipublikasikan ke aplikasi lain
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    webhookSignature:
+      type: apiKey
+      in: header
+      name: X-B2BLink-Signature
+      description: HMAC-SHA256 body, dapat memakai prefix `sha256=`.
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        status: {type: string, enum: [success, error]}
+        message: {type: string}
+        data: {type: object, additionalProperties: true}
+    SmartBankCallback:
+      type: object
+      required: [order_id, status]
+      properties:
+        order_id: {type: integer, example: 10}
+        status: {type: string, enum: [succeeded, failed]}
+        payment_reference: {type: string, example: SB-PAY-20260721-001}
+    ShipmentEvent:
+      type: object
+      required: [order_id, event, tracking_reference]
+      properties:
+        order_id: {type: integer, example: 10}
+        event: {type: string, enum: [shipment.created]}
+        tracking_reference: {type: string, example: LOG-20260721-001}
+paths:
+  /api/auth.php?action=login:
+    post:
+      tags: [Integrator]
+      summary: Login dan memperoleh JWT
+      description: Local active. Akun integrator diarahkan ke portal dokumentasi.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: {type: string, format: email, example: integrator@b2blink.com}
+                password: {type: string, format: password}
+      responses:
+        '200': {description: Login berhasil}
+        '401': {description: Kredensial tidak valid}
+  /api/integrations.php?action=status:
+    get:
+      tags: [Integrator]
+      summary: Status kesiapan seluruh integrasi
+      description: Local active. Membaca konfigurasi tanpa membuka secret.
+      security: [{bearerAuth: []}]
+      responses:
+        '200': {description: Status SmartBank, LogistiKita, Insight, dan outbox}
+        '403': {description: Hanya role integrator}
+  /api/integrations.php?action=outbox:
+    get:
+      tags: [Outbox]
+      summary: Daftar event domain terbaru
+      description: Local active. Read-only, hanya role integrator.
+      security: [{bearerAuth: []}]
+      parameters:
+        - in: query
+          name: limit
+          schema: {type: integer, minimum: 1, maximum: 100, default: 25}
+      responses:
+        '200': {description: Event outbox terbaru}
+  /api/integrations.php?action=smartbank_payment_callback:
+    post:
+      tags: [SmartBank]
+      summary: Terima hasil verifikasi pembayaran SmartBank
+      description: Integration-ready. Idempotent; hanya bekerja jika webhook secret dikonfigurasi.
+      security: [{webhookSignature: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/SmartBankCallback'}
+      responses:
+        '200': {description: Callback diproses atau replay dikembalikan}
+        '401': {description: Signature tidak valid}
+        '409': {description: State order tidak valid}
+  /api/integrations.php?action=logistics_shipment_event:
+    post:
+      tags: [LogistiKita]
+      summary: Terima event pembuatan shipment
+      description: Integration-ready. Mengubah order PAID/PROCESSING menjadi SHIPPED secara atomik.
+      security: [{webhookSignature: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ShipmentEvent'}
+      responses:
+        '200': {description: Shipment event diterima}
+        '401': {description: Signature tidak valid}
+        '409': {description: State order tidak valid}
+  /api/integrations.php?action=insight_procurement_summary:
+    get:
+      tags: [UMKM Insight]
+      summary: Ringkasan procurement read-only
+      description: Local active. Projection ringan; tidak mengubah order, receipt, stok, atau payment.
+      security: [{bearerAuth: []}]
+      responses:
+        '200': {description: Total order, nilai procurement, receipt, dan data freshness}
+        '403': {description: Hanya role integrator}
+  /api/orders.php?action=detail&id={id}:
+    get:
+      tags: [SupplierHub]
+      summary: Detail purchase order beserta receipt dan dispute
+      security: [{bearerAuth: []}]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: integer}
+      responses:
+        '200': {description: Detail order milik user}
+        '404': {description: Tidak ditemukan atau bukan milik user}
+  /api/orders.php?action=request_payment:
+    post:
+      tags: [SupplierHub, SmartBank]
+      summary: Membuat payment request
+      description: Local active. Status tetap PENDING sampai callback SmartBank terverifikasi.
+      security: [{bearerAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id, idempotency_key]
+              properties:
+                order_id: {type: integer}
+                idempotency_key: {type: string, maxLength: 100}
+      responses:
+        '200': {description: Payment request tersimpan}
+  /api/orders.php?action=supplier_fulfillment:
+    post:
+      tags: [SupplierHub, LogistiKita]
+      summary: Perbarui estimate, processing, atau shipped
+      security: [{bearerAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id, fulfillment_action]
+              properties:
+                order_id: {type: integer}
+                fulfillment_action: {type: string, enum: [estimate, processing, shipped]}
+                fulfillment_eta: {type: string, format: date-time}
+                tracking_reference: {type: string}
+      responses:
+        '200': {description: Fulfillment diperbarui}
+        '409': {description: Transisi state tidak valid}
+  /api/orders.php?action=receive_goods:
+    post:
+      tags: [SupplierHub, UMKM Insight]
+      summary: Catat full atau partial goods receipt
+      description: Local active. Membuat outbox untuk Inventory; tidak menulis stok UMKM langsung.
+      security: [{bearerAuth: []}]
+      responses:
+        '200': {description: Receipt tersimpan secara idempotent}
+        '422': {description: Quantity tidak valid atau over-receipt}
+  /api/orders.php?action=open_dispute:
+    post:
+      tags: [SupplierHub]
+      summary: Buka procurement dispute
+      security: [{bearerAuth: []}]
+      responses:
+        '200': {description: Dispute dibuat}
+        '409': {description: Masih ada dispute terbuka}

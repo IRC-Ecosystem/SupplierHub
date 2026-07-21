@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role ENUM('umkm', 'supplier') NOT NULL,
+    role ENUM('umkm', 'supplier', 'integrator') NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -139,7 +139,8 @@ CREATE TABLE IF NOT EXISTS payments (
 -- Users (password = bcrypt hash of 'password123')
 INSERT INTO users (id, name, email, password, role) VALUES
 (1, 'SupplierHub', 'supplier@b2blink.com', '$2y$10$mWm02z6ClvVWIBal.MbSbOl0b5gCKdALG6LHWXIJlZvEeqaf/WWZW', 'supplier'),
-(2, 'Warung Bu Ani', 'umkm@b2blink.com', '$2y$10$mWm02z6ClvVWIBal.MbSbOl0b5gCKdALG6LHWXIJlZvEeqaf/WWZW', 'umkm');
+(2, 'Warung Bu Ani', 'umkm@b2blink.com', '$2y$10$mWm02z6ClvVWIBal.MbSbOl0b5gCKdALG6LHWXIJlZvEeqaf/WWZW', 'umkm'),
+(3, 'Integration Operator', 'integrator@b2blink.com', '$2y$10$mWm02z6ClvVWIBal.MbSbOl0b5gCKdALG6LHWXIJlZvEeqaf/WWZW', 'integrator');
 
 -- Materials (sesuai data asli di supplierhub.html)
 INSERT INTO materials (id, material_code, name, category, price, stock, unit, icon, supplier_id) VALUES

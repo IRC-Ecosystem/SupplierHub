@@ -1,0 +1,3 @@
+<Files "openapi.yaml">
+    Require all denied
+</Files>

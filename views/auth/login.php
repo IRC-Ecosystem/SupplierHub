@@ -77,7 +77,7 @@ $pageTitle = 'Masuk / Daftar - B2BLink';
                 <div class="relative z-10 bg-white/5 backdrop-blur-xl p-5 lg:p-6 rounded-3xl border border-white/10 shadow-2xl mt-8">
                     <div class="flex items-start gap-4">
                         <div class="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10"><i class="ph-fill ph-shield-check text-xl lg:text-2xl text-emerald-400" id="security-icon"></i></div>
-                        <div><p class="text-sm font-bold text-white mb-1">Akses berbasis peran</p><p class="text-xs text-slate-300 leading-relaxed font-medium">Portal menyesuaikan akses untuk akun UMKM dan supplier.</p></div>
+                        <div><p class="text-sm font-bold text-white mb-1">Akses berbasis peran</p><p class="text-xs text-slate-300 leading-relaxed font-medium">Portal menyesuaikan akses untuk akun UMKM, supplier, dan integrator.</p></div>
                     </div>
                 </div>
             </div>
@@ -223,13 +223,13 @@ $pageTitle = 'Masuk / Daftar - B2BLink';
                 localStorage.setItem('jwt_token', res.data.token);
                 
                 const role = res.data.role;
-                text.innerText = role === 'umkm' ? 'Portal UMKM Siap!' : 'SupplierHub Siap!';
-                sub.innerText = role === 'umkm' ? 'Menghubungkan ke Katalog Supplier' : 'Memuat Data Gudang & Pesanan';
+                text.innerText = role === 'integrator' ? 'Integration Console Siap!' : (role === 'umkm' ? 'Portal UMKM Siap!' : 'SupplierHub Siap!');
+                sub.innerText = role === 'integrator' ? 'Memuat kontrak endpoint lintas aplikasi' : (role === 'umkm' ? 'Menghubungkan ke Katalog Supplier' : 'Memuat Data Gudang & Pesanan');
                 
                 spinner.classList.remove('border-t-transparent','animate-spin');
                 spinner.innerHTML = '<i class="ph-bold ph-check text-white text-4xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></i>';
                 
-                const c = role === 'umkm' ? 'emerald' : 'blue';
+                const c = role === 'umkm' ? 'emerald' : (role === 'integrator' ? 'violet' : 'blue');
                 spinner.className = `absolute inset-0 rounded-full border-4 border-${c}-500 bg-${c}-500`;
                 
                 setTimeout(() => { window.location.href = res.data.redirect; }, 800);

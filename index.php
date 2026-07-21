@@ -57,6 +57,18 @@ $userRole = $_SESSION['role'];
 $currentPage = $_GET['page'] ?? 'dashboard';
 
 // ============================================
+// INTEGRATOR PORTAL
+// ============================================
+if ($p === 'integrator') {
+    if ($userRole !== 'integrator') {
+        header('Location: index.php?p=' . $userRole);
+        exit;
+    }
+    require __DIR__ . '/views/integrator/dashboard.php';
+    exit;
+}
+
+// ============================================
 // CART ACTIONS (UMKM)
 // ============================================
 if ($p === 'umkm' && isset($_GET['cart_action'])) {
@@ -100,6 +112,7 @@ if ($p === 'supplier') {
                 case 'pesanan':   require __DIR__ . '/views/supplier/pesanan.php'; break;
                 case 'laporan':   require __DIR__ . '/views/supplier/laporan.php'; break;
                 case 'keuangan':  require __DIR__ . '/views/supplier/keuangan.php'; break;
+                case 'profil':     require __DIR__ . '/views/supplier/profil.php'; break;
                 default:          require __DIR__ . '/views/supplier/dashboard.php'; break;
             }
             ?>

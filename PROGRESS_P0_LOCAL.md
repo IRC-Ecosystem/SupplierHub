@@ -1,11 +1,18 @@
-# Progress P0 Lokal SupplierHub
+# Progress Implementasi Lokal SupplierHub — P0 & P1
 
 **Tanggal pembaruan:** 21 Juli 2026  
-**Ruang lingkup:** Perbaikan prioritas P0 yang dapat diselesaikan sepenuhnya di aplikasi SupplierHub tanpa integrasi SmartBank, Inventory, LogistiKita, atau API Gateway eksternal.
+**Ruang lingkup:** Implementasi prioritas P0 dan P1 yang dapat diselesaikan sepenuhnya di SupplierHub tanpa mengaktifkan integrasi SmartBank, Inventory, LogistiKita, atau API Gateway eksternal.
 
 ## Ringkasan
 
-P0 lokal SupplierHub telah diselesaikan. Alur order dan pembayaran sekarang memisahkan pembuatan order, persetujuan supplier, payment request, dan verifikasi pembayaran sesuai prinsip PRD.
+P0 dan P1 lokal SupplierHub telah diselesaikan. P0 mengamankan order dan payment flow. P1 melanjutkan procurement dari estimasi supplier, fulfillment, pengiriman lokal, penerimaan penuh/sebagian, pembatalan, dispute, supplier master, performance, hingga transactional outbox.
+
+## Ringkasan Status Prioritas
+
+| Prioritas | Fokus | Status | Integrasi eksternal |
+|---|---|---|---|
+| P0 lokal | Keamanan transaksi, payment state, idempotency, authorization, dan histori status | Selesai | Belum diaktifkan |
+| P1 lokal | Fulfillment, goods receipt, partial receipt, cancellation, dispute, supplier master, performance, dan outbox | Selesai | Belum diaktifkan |
 
 ## Perbandingan Sebelum dan Sesudah
 
@@ -106,7 +113,7 @@ Menunggu verifikasi SmartBank
 | `tests/prd_payment_flow_test.php` | Pengujian state machine, payment, stok, dan idempotency |
 | `tests/local_security_test.php` | Pengujian standard HTTP/error lokal |
 
-## Di Luar P0 Lokal
+## Di Luar Implementasi Lokal P0 & P1
 
 Pekerjaan berikut belum dilakukan karena membutuhkan integrasi aplikasi lain:
 
@@ -119,6 +126,130 @@ Pekerjaan berikut belum dilakukan karena membutuhkan integrasi aplikasi lain:
 | Notification | Notifikasi perubahan order, payment, dan shipment |
 | UMKM Insight | Analytics read model dan laporan procurement |
 
+## Progress P1 Lokal
+
+**Acuan PRD:** FR-SUP-002, FR-SUP-004, FR-SUP-005, FR-SUP-006, FR-SUP-007 dan fitur MVP SupplierHub.
+
+P1 lokal menyelesaikan siklus procurement setelah pembayaran tanpa memalsukan integrasi eksternal. SupplierHub mencatat fakta bisnis dan transactional outbox; aplikasi pemilik domain eksternal tetap menjadi satu-satunya writer saat integrasi diaktifkan.
+
+### Perbandingan Sebelum dan Sesudah P1
+
+| Area | Sebelum P1 | Sesudah P1 lokal | FR/PRD | Status |
+|---|---|---|---|---|
+| Estimasi pemenuhan | Supplier hanya menerima/menolak | Supplier dapat mencatat estimasi sebelum konfirmasi | FR-SUP-002 | Selesai |
+| Fulfillment | Order berhenti pada `PAID` | Mendukung `PAID -> PROCESSING -> SHIPPED` | FR-SUP-006 | Selesai |
+| Referensi pengiriman | Belum menjadi bagian alur | Referensi dan waktu pengiriman lokal disimpan | Fitur MVP | Selesai |
+| Goods receipt | Tidak tersedia | Receipt header dan item tersimpan dengan aktor/waktu | FR-SUP-004 | Selesai |
+| Partial receipt | Status tersedia tanpa proses | Quantity dapat diterima bertahap per order item | FR-SUP-005 | Selesai |
+| Full receipt | Tidak tersedia | Order menjadi `RECEIVED` setelah semua quantity diproses | FR-SUP-004 | Selesai |
+| Barang ditolak | Tidak tercatat | Quantity ditolak dan alasannya disimpan | Partial receipt | Selesai |
+| Retry receipt | Berisiko membuat efek ganda | Idempotency key mengembalikan receipt sebelumnya | NFR idempotency | Selesai |
+| Over-receipt | Belum divalidasi | Total diterima/ditolak tidak boleh melebihi order | AC-SUP-003/004 | Selesai |
+| Inventory ownership | Berpotensi mencampur katalog supplier dengan stok UMKM | Receipt berstatus `inventory_sync_status=pending`; stok Inventory tidak ditulis lokal | FR-INV-004 | Selesai lokal |
+| Pembatalan unpaid | Belum memiliki policy | Order unpaid dapat dibatalkan dengan alasan | FR-SUP-007 | Selesai |
+| Pembatalan payment pending | Masih berpotensi dibatalkan saat verifikasi | Ditolak hingga hasil SmartBank tersedia | Financial integrity | Selesai |
+| Pembatalan paid | Belum dibedakan | Ditolak karena membutuhkan refund/reversal SmartBank | FR-SUP-007 | Menunggu integrasi |
+| Dispute | Tidak tersedia | UMKM dapat membuka satu dispute aktif per order | Fitur MVP | Selesai dasar |
+| Supplier master | Hanya data user | Profil usaha, kontak, alamat, lead time, dan status aktif | Fitur MVP | Selesai |
+| Supplier performance | Tidak tersedia | Total order, completion rate, fulfillment time, dan dispute | Fitur MVP | Selesai |
+| Transactional outbox | Tidak tersedia | Event domain disimpan atomik bersama transaksi | Arsitektur PRD | Selesai lokal |
+| Automated test | Belum ada pengujian P1 | Receipt, replay, ownership, cancellation, dispute, stok, dan outbox diuji | Definition of Done | Selesai |
+
+### State Machine P1 Lokal
+
+```text
+SUBMITTED
+  |-- supplier reject  -> REJECTED
+  |-- UMKM cancel      -> CANCELLED
+  `-- supplier confirm -> PENDING_PAYMENT
+                              |
+                       SmartBank boundary
+                              |
+                            PAID
+                              |
+                         PROCESSING
+                              |
+                           SHIPPED
+                         /         \
+          PARTIALLY_RECEIVED     RECEIVED
+```
+
+Order dengan payment request `PENDING` tidak dapat dibatalkan. Order yang sudah `PAID` juga tidak dapat dibatalkan lokal karena membutuhkan refund/reversal dari SmartBank.
+
+### Event Outbox P1 Lokal
+
+| Event | Pemicu | Status publikasi |
+|---|---|---|
+| `SUPPLIER_ORDER_CONFIRMED` | Supplier menerima order | Pending integrasi |
+| `SUPPLIER_ORDER_PAID` | Pembayaran SmartBank terverifikasi | Pending integrasi |
+| `SUPPLIER_ORDER_PROCESSING` | Supplier mulai menyiapkan barang | Pending integrasi |
+| `SUPPLIER_ORDER_SHIPPED` | Supplier mencatat pengiriman lokal | Pending integrasi |
+| `GOODS_PARTIALLY_RECEIVED` | UMKM menerima sebagian | Pending integrasi |
+| `RESTOCK_COMPLETED` | Seluruh quantity sudah diproses | Pending Inventory |
+| `SUPPLIER_ORDER_CANCELLED` | Order unpaid dibatalkan | Pending integrasi |
+| `PROCUREMENT_DISPUTE_OPENED` | UMKM membuka dispute | Pending integrasi |
+
+### Migration dan File Utama P1
+
+| File | Fungsi | Status |
+|---|---|---|
+| `sql/migrations/004_p1_local_procurement.sql` | Tabel receipt, dispute, supplier profile, outbox, dan kolom fulfillment | Diterapkan |
+| `models/Procurement.php` | Aturan state transition, receipt, cancellation, dispute, performance, dan outbox | Selesai |
+| `api/supplier_profile.php` | Pengelolaan supplier master lokal | Selesai |
+| `views/supplier/profil.php` | UI profil dan performa supplier | Selesai |
+| `tests/p1_local_procurement_test.php` | Pengujian aturan procurement P1 | Lulus |
+
+### Hasil Verifikasi Gabungan
+
+| Pemeriksaan | Hasil |
+|---|---|
+| P1 procurement test | `P1_LOCAL_PROCUREMENT_OK` |
+| P0 payment regression | `PRD_PAYMENT_FLOW_OK` |
+| Security regression | `LOCAL_SECURITY_OK` |
+| Receipt replay | Tidak membuat receipt/event ganda |
+| Over-receipt | Ditolak |
+| Cross-owner receipt | Ditolak |
+| Receipt lokal mengubah stok Inventory/katalog | Tidak |
+| Pembatalan payment pending/paid | Ditolak |
+| Browser UI Supplier dan UMKM | Lulus tanpa console error |
+| PHP syntax | Lulus |
+
 ## Kesimpulan
 
-P0 lokal dinyatakan **selesai**. SupplierHub sekarang memiliki fondasi transaksi lokal yang aman, idempotent, tenant-aware pada kepemilikan order, dan mengikuti alur pembayaran PRD. Tahap berikutnya dapat berfokus pada integrasi SmartBank tanpa mengubah alur utama pengguna.
+P0 dan P1 lokal dinyatakan **selesai**. SupplierHub sekarang memiliki transaksi yang aman dan idempotent serta siklus procurement lokal sampai goods receipt. Tahap berikutnya adalah menghubungkan boundary yang sudah tersedia ke SmartBank, Inventory Module, dan LogistiKita tanpa memindahkan kepemilikan data ke SupplierHub.
+
+## Portal Integrator & Swagger UI
+
+| Area | Sebelum | Sesudah | Status |
+|---|---|---|---|
+| Role dokumentasi API | Tidak tersedia | Role `integrator` terpisah dari UMKM dan supplier | Selesai |
+| Akun lokal | Tidak tersedia | `integrator@b2blink.com` dengan kredensial demo terdokumentasi | Selesai |
+| Swagger | Hanya spec REST SupplierHub lama | OpenAPI gabungan SupplierHub, SmartBank, LogistiKita, UMKM Insight, dan Outbox | Selesai |
+| Akses OpenAPI | File statis | Spec hanya dapat dibaca oleh session role integrator | Selesai |
+| Status integrasi | Tidak tersedia | Endpoint kesiapan seluruh integrasi | Selesai |
+| SmartBank callback | Hanya seam internal | Endpoint callback dengan signature HMAC | Integration-ready |
+| LogistiKita event | Tidak tersedia | Endpoint shipment event dengan signature HMAC | Integration-ready |
+| UMKM Insight | Tidak tersedia | Procurement summary read-only | Selesai lokal |
+| Outbox monitoring | Hanya tabel database | Endpoint read-only untuk event terbaru | Selesai lokal |
+
+### Endpoint Integrasi
+
+| Aplikasi | Endpoint utama | Authorization |
+|---|---|---|
+| Integrator | `GET api/integrations.php?action=status` | JWT/session role integrator |
+| Outbox | `GET api/integrations.php?action=outbox` | JWT/session role integrator |
+| SmartBank | `POST api/integrations.php?action=smartbank_payment_callback` | `X-B2BLink-Signature` |
+| LogistiKita | `POST api/integrations.php?action=logistics_shipment_event` | `X-B2BLink-Signature` |
+| UMKM Insight | `GET api/integrations.php?action=insight_procurement_summary` | JWT/session role integrator |
+
+### Verifikasi Portal Integrator
+
+| Pemeriksaan | Hasil |
+|---|---|
+| Login dan redirect role integrator | Lulus |
+| Portal integrator | HTTP 200 |
+| OpenAPI melalui endpoint terlindungi | HTTP 200 |
+| Akses langsung file YAML | HTTP 403 |
+| Akun UMKM mengakses integration API | HTTP 403 |
+| Webhook dengan signature salah | HTTP 401 |
+| Automated test | `INTEGRATOR_PORTAL_OK` |

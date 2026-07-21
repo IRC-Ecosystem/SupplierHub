@@ -16,6 +16,7 @@ require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../middleware/GatewayMiddleware.php';
 require_once __DIR__ . '/../middleware/LoggerMiddleware.php';
 require_once __DIR__ . '/../models/Payment.php';
+require_once __DIR__ . '/../models/Procurement.php';
 
 class OrderController {
 
@@ -331,6 +332,7 @@ class OrderController {
             if ($order['status'] !== 'submitted') throw new Exception('Pesanan sudah diproses sebelumnya.');
             if (!Order::approve($order_id, null, $resi)) throw new Exception('Status pesanan gagal diperbarui.');
             Order::addStatusHistory($order_id, 'submitted', 'pending_payment', $supplier_id, 'Supplier menerima pesanan', $db);
+            Procurement::enqueue($db,(int)$order_id,'SUPPLIER_ORDER_CONFIRMED',['order_id'=>(int)$order_id,'order_code'=>$order['order_code'],'payment_status'=>'unpaid']);
             $db->commit();
             return ['status'=>'success','message'=>'Pesanan diterima. UMKM sekarang dapat mengirim payment request ke SmartBank.','data'=>[
                 'order_code'=>$order['order_code'],'order_status'=>'pending_payment','payment_status'=>'unpaid'
@@ -569,6 +571,7 @@ class OrderController {
             Payment::create($order['umkm_id'],'debit',$order['total'],"Pembayaran pesanan {$order['order_code']}",$reference,$db);
             Payment::create($order['supplier_id'],'credit',$order['subtotal'],"Penerimaan dana pesanan {$order['order_code']}",$reference,$db);
             Order::addStatusHistory($order_id, $order['status'], 'paid', null, 'Pembayaran diverifikasi SmartBank', $db);
+            Procurement::enqueue($db,(int)$order_id,'SUPPLIER_ORDER_PAID',['order_id'=>(int)$order_id,'order_code'=>$order['order_code'],'payment_reference'=>$reference]);
             $db->commit();
             return ['status'=>'success','message'=>'Pembayaran diverifikasi SmartBank.','data'=>['order_status'=>'paid','payment_status'=>'paid','reference'=>$reference]];
         } catch (Exception $e) {

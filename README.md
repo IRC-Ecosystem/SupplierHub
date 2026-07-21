@@ -26,6 +26,7 @@ Pindahkan kedua folder project ke direktori root Laragon Anda:
 - Buka MySQL manager Anda (phpMyAdmin / HeidiSQL).
 - Buat database baru bernama `supplierhub_db`.
 - Import file SQL dari: `C:\laragon\www\SupplierHub\sql\setup.sql`.
+- Setelah setup dasar, jalankan migration secara berurutan dari folder `sql/migrations/`, termasuk `004_p1_local_procurement.sql` untuk fitur fulfillment, goods receipt, dispute, supplier master, dan outbox lokal.
 
 ### 2. Database SmartBank (`smartbank_db`)
 - Buat database baru bernama `smartbank_db`.
@@ -129,3 +130,8 @@ Anda dapat masuk (Login) ke sistem SupplierHub menggunakan akun berikut:
   - **Email**: `supplier@b2blink.com`
   - **Password**: `password123`
   - **Saldo Bank Awal**: Rp 5.000.000
+- **Akun Integrator (Swagger UI)**:
+  - **Email / username**: `integrator@b2blink.com`
+  - **Password**: `password123`
+  - **Portal**: `http://localhost/SupplierHub/index.php?p=integrator`
+  - Khusus lokal/demo; ganti password dan `INTEGRATION_WEBHOOK_SECRET` sebelum deployment.

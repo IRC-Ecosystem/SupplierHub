@@ -18,6 +18,7 @@ require_once __DIR__ . '/../middleware/LoggerMiddleware.php';
 require_once __DIR__ . '/../middleware/GatewayMiddleware.php';
 require_once __DIR__ . '/../middleware/CsrfMiddleware.php';
 require_once __DIR__ . '/../helpers/ApiResponse.php';
+require_once __DIR__ . '/../models/Procurement.php';
 
 GatewayMiddleware::addResponseHeaders();
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') CsrfMiddleware::verify();
@@ -209,6 +210,36 @@ switch ($action) {
         $orderId = (int)($input['order_id'] ?? 0);
         $paymentKey = trim((string)($input['idempotency_key'] ?? ''));
         $response = OrderController::requestPayment($orderId, $userId, $paymentKey);
+        break;
+
+    case 'supplier_fulfillment':
+        $user = AuthMiddleware::requireAuth('supplier');
+        $userId = (int)$user['user_id'];
+        $response = Procurement::supplierUpdate((int)($input['order_id'] ?? 0), $userId, (string)($input['fulfillment_action'] ?? ''), $input);
+        break;
+
+    case 'receive_goods':
+        $user = AuthMiddleware::requireAuth('umkm');
+        $userId = (int)$user['user_id'];
+        $response = Procurement::receive((int)($input['order_id'] ?? 0), $userId, is_array($input['items'] ?? null) ? $input['items'] : [], trim((string)($input['idempotency_key'] ?? '')), $input['note'] ?? null);
+        break;
+
+    case 'cancel_order':
+        $user = AuthMiddleware::requireAuth('umkm');
+        $userId = (int)$user['user_id'];
+        $response = Procurement::cancel((int)($input['order_id'] ?? 0), $userId, (string)($input['reason'] ?? ''));
+        break;
+
+    case 'open_dispute':
+        $user = AuthMiddleware::requireAuth('umkm');
+        $userId = (int)$user['user_id'];
+        $response = Procurement::openDispute((int)($input['order_id'] ?? 0), $userId, (string)($input['category'] ?? ''), (string)($input['description'] ?? ''));
+        break;
+
+    case 'supplier_performance':
+        $user = AuthMiddleware::requireAuth('supplier');
+        $userId = (int)$user['user_id'];
+        $response = ['status'=>'success','data'=>Procurement::supplierPerformance($userId)];
         break;
 
     case 'reject':

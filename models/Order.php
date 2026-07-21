@@ -153,13 +153,23 @@ class Order {
 
         // Get items
         $stmt = $db->prepare("
-            SELECT oi.*, m.name as material_name, m.unit, m.stock as current_stock, m.icon
+            SELECT oi.*, m.name as material_name, m.unit, m.stock as current_stock, m.icon,
+                   COALESCE((SELECT SUM(gri.accepted_qty) FROM goods_receipt_items gri WHERE gri.order_item_id=oi.id),0) AS accepted_qty,
+                   COALESCE((SELECT SUM(gri.rejected_qty) FROM goods_receipt_items gri WHERE gri.order_item_id=oi.id),0) AS rejected_qty
             FROM order_items oi 
             JOIN materials m ON oi.material_id = m.id 
             WHERE oi.order_id = :oid
         ");
         $stmt->execute(['oid' => $order_id]);
         $order['items'] = $stmt->fetchAll();
+
+        $stmt = $db->prepare("SELECT gr.*,u.name received_by_name FROM goods_receipts gr JOIN users u ON u.id=gr.received_by WHERE gr.order_id=:oid ORDER BY gr.created_at ASC");
+        $stmt->execute(['oid'=>$order_id]);
+        $order['goods_receipts'] = $stmt->fetchAll();
+
+        $stmt = $db->prepare("SELECT d.*,u.name opened_by_name FROM procurement_disputes d JOIN users u ON u.id=d.opened_by WHERE d.order_id=:oid ORDER BY d.created_at DESC");
+        $stmt->execute(['oid'=>$order_id]);
+        $order['disputes'] = $stmt->fetchAll();
 
         return $order;
     }

@@ -14,8 +14,10 @@ $orders = Order::getByUmkm($userId);
                     <td class="py-3 px-4"><div class="font-mono text-sm font-bold text-slate-700"><?= $o['order_code'] ?></div><div class="text-xs text-slate-500"><?= $o['created_at'] ?></div></td>
                     <td class="py-3 px-4 text-sm font-bold text-slate-800">Rp <?= number_format($o['total'],0,',','.') ?></td>
                     <td class="py-3 px-4">
-                        <?php if ($o['payment_status'] === 'paid'): ?>
-                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold border border-green-200"><i class="ph-fill ph-check-circle mr-1"></i>PAID</span>
+                        <?php if (in_array($o['status'], ['shipped','partially_received','received'], true)): ?>
+                        <span class="px-2 py-1 bg-violet-100 text-violet-700 rounded text-xs font-bold border border-violet-200"><?= strtoupper(str_replace('_',' ',$o['status'])) ?></span>
+                        <?php elseif ($o['payment_status'] === 'paid'): ?>
+                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold border border-green-200"><i class="ph-fill ph-check-circle mr-1"></i><?= strtoupper($o['status']) ?></span>
                         <?php elseif ($o['status'] === 'submitted'): ?>
                         <span class="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-bold border border-amber-200"><i class="ph-fill ph-clock mr-1"></i>Menunggu Supplier</span>
                         <?php elseif ($o['payment_status'] === 'pending'): ?>
@@ -34,7 +36,14 @@ $orders = Order::getByUmkm($userId);
                         <?php elseif ($o['status'] === 'payment_failed'): ?>Pembayaran sebelumnya gagal; dapat dicoba kembali
                         <?php endif; ?>
                     </td>
-                    <td class="py-3 px-4">
+                    <td class="py-3 px-4"><div class="flex flex-wrap gap-2">
+                        <?php if (in_array($o['status'], ['shipped','partially_received'], true)): ?>
+                        <button onclick="openGoodsReceipt(<?= $o['id'] ?>)" class="px-3 py-1.5 bg-violet-50 text-violet-700 border border-violet-200 rounded-lg text-xs font-bold"><i class="ph ph-package mr-1"></i> Terima barang</button>
+                        <button onclick="openDispute(<?= $o['id'] ?>)" class="px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold">Sengketa</button>
+                        <?php endif; ?>
+                        <?php if (in_array($o['status'], ['submitted','pending_payment','payment_failed'], true) && in_array($o['payment_status'], ['unpaid','failed'], true)): ?>
+                        <button onclick="cancelOrder(<?= $o['id'] ?>)" class="px-3 py-1.5 bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-xs font-bold">Batalkan</button>
+                        <?php endif; ?>
                         <?php if ($o['payment_status'] === 'paid'): ?>
                         <button onclick="viewReceipt(<?= $o['id'] ?>, '<?= $o['order_code'] ?>')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold transition-all hover:shadow-sm">
                             <i class="ph ph-receipt text-sm"></i> Lihat Bukti
@@ -46,7 +55,7 @@ $orders = Order::getByUmkm($userId);
                         <?php else: ?>
                         <span class="text-slate-300 text-xs">—</span>
                         <?php endif; ?>
-                    </td>
+                    </div></td>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>
@@ -64,6 +73,22 @@ async function requestSmartBankPayment(orderId) {
     showToast(result.message, result.status === 'success' ? 'success' : 'error');
     if (result.status === 'success') setTimeout(() => location.reload(), 700);
 }
+</script>
+
+<div id="goods-receipt-modal" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden">
+        <div class="panel-header"><div><h3 class="panel-title">Konfirmasi penerimaan barang</h3><p class="text-xs text-slate-500 mt-1">Catat barang diterima dan ditolak pada pengiriman ini.</p></div><button onclick="closeGoodsReceipt()"><i class="ph ph-x"></i></button></div>
+        <div id="goods-receipt-body" class="p-5 max-h-[65vh] overflow-y-auto"></div>
+        <div class="p-4 border-t flex justify-end gap-2"><button onclick="closeGoodsReceipt()" class="px-4 py-2 border rounded-lg text-sm">Batal</button><button onclick="submitGoodsReceipt()" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold">Simpan penerimaan</button></div>
+    </div>
+</div>
+<script>
+let receiptOrderId=null;
+async function openGoodsReceipt(orderId){const r=await apiCall(BASE+'/api/orders.php?action=detail&id='+orderId);if(r.status!=='success'){showToast(r.message,'error');return;}receiptOrderId=orderId;const rows=r.data.items.map(i=>{const remaining=Number(i.qty)-Number(i.accepted_qty)-Number(i.rejected_qty);return remaining>0?`<div class="receipt-line grid grid-cols-1 md:grid-cols-4 gap-3 p-4 mb-3 rounded-xl border bg-slate-50" data-id="${i.id}" data-max="${remaining}"><div><b class="text-sm">${i.material_name}</b><p class="text-xs text-slate-500">Sisa ${remaining} ${i.unit}</p></div><label class="text-xs">Diterima<input type="number" min="0" max="${remaining}" value="${remaining}" class="accepted w-full mt-1"></label><label class="text-xs">Ditolak<input type="number" min="0" max="${remaining}" value="0" class="rejected w-full mt-1"></label><label class="text-xs">Alasan<input type="text" class="reason w-full mt-1" placeholder="Jika ditolak"></label></div>`:''}).join('');document.getElementById('goods-receipt-body').innerHTML=rows+`<label class="text-xs font-bold">Catatan penerimaan<textarea id="receipt-note" class="w-full mt-1" rows="2"></textarea></label>`;const m=document.getElementById('goods-receipt-modal');m.classList.remove('hidden');m.classList.add('flex');}
+function closeGoodsReceipt(){const m=document.getElementById('goods-receipt-modal');m.classList.add('hidden');m.classList.remove('flex');}
+async function submitGoodsReceipt(){const items=[...document.querySelectorAll('.receipt-line')].map(x=>({order_item_id:Number(x.dataset.id),accepted_qty:Number(x.querySelector('.accepted').value||0),rejected_qty:Number(x.querySelector('.rejected').value||0),rejection_reason:x.querySelector('.reason').value})).filter(x=>x.accepted_qty+x.rejected_qty>0);const r=await apiCall(BASE+'/api/orders.php?action=receive_goods','POST',{order_id:receiptOrderId,idempotency_key:'receipt-'+receiptOrderId+'-'+crypto.randomUUID(),note:document.getElementById('receipt-note').value,items});showToast(r.message,r.status==='success'?'success':'error');if(r.status==='success'){closeGoodsReceipt();setTimeout(()=>location.reload(),700)}}
+async function cancelOrder(orderId){const reason=prompt('Tuliskan alasan pembatalan (minimal 5 karakter):');if(!reason)return;const r=await apiCall(BASE+'/api/orders.php?action=cancel_order','POST',{order_id:orderId,reason});showToast(r.message,r.status==='success'?'success':'error');if(r.status==='success')setTimeout(()=>location.reload(),700)}
+async function openDispute(orderId){const category=prompt('Kategori: shortage, damaged, quality, late, atau other','damaged');if(!category)return;const description=prompt('Jelaskan masalah barang (minimal 10 karakter):');if(!description)return;const r=await apiCall(BASE+'/api/orders.php?action=open_dispute','POST',{order_id:orderId,category,description});showToast(r.message,r.status==='success'?'success':'error');}
 </script>
 
 <!-- Receipt Modal -->
