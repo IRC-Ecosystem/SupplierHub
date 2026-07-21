@@ -14,6 +14,9 @@ require_once __DIR__ . '/models/Order.php';
 require_once __DIR__ . '/controllers/DashboardController.php';
 require_once __DIR__ . '/middleware/AuthMiddleware.php';
 
+const PORTAL_LOCATION_PREFIX = 'Location: index.php?p=';
+const LOGIN_LOCATION = 'Location: index.php?p=login';
+
 $p = $_GET['p'] ?? '';
 
 // ============================================
@@ -24,7 +27,7 @@ $p = $_GET['p'] ?? '';
 if (empty($p)) {
     // If logged in, redirect to portal
     if (isset($_SESSION['user_id'])) {
-        header('Location: index.php?p=' . $_SESSION['role']);
+        header(PORTAL_LOCATION_PREFIX . $_SESSION['role']);
         exit;
     }
     // Show landing page
@@ -35,10 +38,10 @@ if (empty($p)) {
 // Login page
 if ($p === 'login') {
     if (isset($_SESSION['user_id'])) {
-        header('Location: index.php?p=' . $_SESSION['role']);
+        header(PORTAL_LOCATION_PREFIX . $_SESSION['role']);
         exit;
     }
-    require __DIR__ . '/views/auth/login.php';
+    require_once __DIR__ . '/views/auth/login.php';
     exit;
 }
 
@@ -47,7 +50,7 @@ if ($p === 'login') {
 // ============================================
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: index.php?p=login');
+    header(LOGIN_LOCATION);
     exit;
 }
 
@@ -61,10 +64,10 @@ $currentPage = $_GET['page'] ?? 'dashboard';
 // ============================================
 if ($p === 'integrator') {
     if ($userRole !== 'integrator') {
-        header('Location: index.php?p=' . $userRole);
+        header(PORTAL_LOCATION_PREFIX . $userRole);
         exit;
     }
-    require __DIR__ . '/views/integrator/dashboard.php';
+    require_once __DIR__ . '/views/integrator/dashboard.php';
     exit;
 }
 
@@ -83,7 +86,7 @@ if ($p === 'umkm' && isset($_GET['cart_action'])) {
 // ============================================
 if ($p === 'supplier') {
     if ($userRole !== 'supplier') {
-        header('Location: index.php?p=' . $userRole);
+        header(PORTAL_LOCATION_PREFIX . $userRole);
         exit;
     }
 
@@ -91,8 +94,8 @@ if ($p === 'supplier') {
     $pendingCount = count(Order::getPending($userId));
     $pageTitle = 'Admin Gudang - SupplierHub B2B';
 
-    require __DIR__ . '/views/layouts/header.php';
-    require __DIR__ . '/views/layouts/sidebar_supplier.php';
+    require_once __DIR__ . '/views/layouts/header.php';
+    require_once __DIR__ . '/views/layouts/sidebar_supplier.php';
     ?>
     <!-- Main Content -->
     <main class="flex-1 flex flex-col overflow-hidden relative">
@@ -108,18 +111,18 @@ if ($p === 'supplier') {
         <div class="app-content flex-1 overflow-y-auto">
             <?php
             switch ($currentPage) {
-                case 'manajemen': require __DIR__ . '/views/supplier/manajemen.php'; break;
-                case 'pesanan':   require __DIR__ . '/views/supplier/pesanan.php'; break;
-                case 'laporan':   require __DIR__ . '/views/supplier/laporan.php'; break;
-                case 'keuangan':  require __DIR__ . '/views/supplier/keuangan.php'; break;
-                case 'profil':     require __DIR__ . '/views/supplier/profil.php'; break;
-                default:          require __DIR__ . '/views/supplier/dashboard.php'; break;
+                case 'manajemen': require_once __DIR__ . '/views/supplier/manajemen.php'; break;
+                case 'pesanan':   require_once __DIR__ . '/views/supplier/pesanan.php'; break;
+                case 'laporan':   require_once __DIR__ . '/views/supplier/laporan.php'; break;
+                case 'keuangan':  require_once __DIR__ . '/views/supplier/keuangan.php'; break;
+                case 'profil':     require_once __DIR__ . '/views/supplier/profil.php'; break;
+                default:          require_once __DIR__ . '/views/supplier/dashboard.php'; break;
             }
             ?>
         </div>
     </main>
     <?php
-    require __DIR__ . '/views/layouts/footer.php';
+    require_once __DIR__ . '/views/layouts/footer.php';
     exit;
 }
 
@@ -128,14 +131,14 @@ if ($p === 'supplier') {
 // ============================================
 if ($p === 'umkm') {
     if ($userRole !== 'umkm') {
-        header('Location: index.php?p=' . $userRole);
+        header(PORTAL_LOCATION_PREFIX . $userRole);
         exit;
     }
 
     $pageTitle = 'Portal Pengadaan B2B - UMKM';
 
-    require __DIR__ . '/views/layouts/header.php';
-    require __DIR__ . '/views/layouts/sidebar_umkm.php';
+    require_once __DIR__ . '/views/layouts/header.php';
+    require_once __DIR__ . '/views/layouts/sidebar_umkm.php';
     ?>
     <main class="flex-1 flex flex-col overflow-hidden relative">
         <header class="app-topbar border-b flex items-center justify-between z-10">
@@ -148,19 +151,19 @@ if ($p === 'umkm') {
         <div class="app-content flex-1 overflow-y-auto">
             <?php
             switch ($currentPage) {
-                case 'katalog':   require __DIR__ . '/views/umkm/katalog.php'; break;
-                case 'keranjang': require __DIR__ . '/views/umkm/keranjang.php'; break;
-                case 'riwayat':   require __DIR__ . '/views/umkm/riwayat.php'; break;
-                case 'keuangan':  require __DIR__ . '/views/umkm/keuangan.php'; break;
-                default:          require __DIR__ . '/views/umkm/dashboard.php'; break;
+                case 'katalog':   require_once __DIR__ . '/views/umkm/katalog.php'; break;
+                case 'keranjang': require_once __DIR__ . '/views/umkm/keranjang.php'; break;
+                case 'riwayat':   require_once __DIR__ . '/views/umkm/riwayat.php'; break;
+                case 'keuangan':  require_once __DIR__ . '/views/umkm/keuangan.php'; break;
+                default:          require_once __DIR__ . '/views/umkm/dashboard.php'; break;
             }
             ?>
         </div>
     </main>
     <?php
-    require __DIR__ . '/views/layouts/footer.php';
+    require_once __DIR__ . '/views/layouts/footer.php';
     exit;
 }
 
 // Fallback
-header('Location: index.php?p=login');
+header(LOGIN_LOCATION);

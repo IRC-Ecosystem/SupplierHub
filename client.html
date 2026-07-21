@@ -124,7 +124,7 @@
             </div>
 
             <div class="flex items-center space-x-4">
-                <button class="relative text-slate-400 hover:text-slate-600">
+                <button type="button" aria-label="Buka notifikasi" class="relative text-slate-400 hover:text-slate-600">
                     <i class="ph ph-bell text-xl"></i>
                 </button>
                 <!-- Tombol Logout yang mengarah kembali ke login.html -->
@@ -142,9 +142,9 @@
     </main>
 
     <!-- Promo Modal Overlay -->
-    <div id="promo-modal-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden items-center justify-center p-4 transition-opacity duration-300 opacity-0" onclick="closePromoModal(event)">
-        <div id="promo-modal" class="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto transform scale-95 transition-all duration-300 relative" onclick="event.stopPropagation()">
-            <button onclick="closePromoModal()" class="absolute top-4 right-4 w-8 h-8 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-700 transition-colors z-10">
+    <div id="promo-modal-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden items-center justify-center p-4 transition-opacity duration-300 opacity-0">
+        <div id="promo-modal" class="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto transform scale-95 transition-all duration-300 relative">
+            <button type="button" aria-label="Tutup detail promo" onclick="closePromoModal()" class="absolute top-4 right-4 w-8 h-8 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-700 transition-colors z-10">
                 <i class="ph-bold ph-x text-sm"></i>
             </button>
             <div id="promo-modal-content">
@@ -185,13 +185,26 @@
             { id: 'ORD-B2B-881', date: '2026-04-20 10:30', total: 154500, status: 'Selesai', resi: 'SP-8810' }
         ];
 
+
+        function generateOrderId() {
+            const existingNumbers = orderHistory
+                .map(order => Number.parseInt(order.id.replace('ORD-B2B-', ''), 10))
+                .filter(Number.isInteger);
+            const nextNumber = Math.max(0, ...existingNumbers) + 1;
+            return `ORD-B2B-${String(nextNumber).padStart(3, '0')}`;
+        }
+
         // --- Core Functions ---
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            const bgColor = type === 'success' ? 'bg-primary' : (type === 'info' ? 'bg-blue-600' : 'bg-red-600');
-            const icon = type === 'success' ? 'ph-check-circle' : (type === 'info' ? 'ph-info' : 'ph-warning-circle');
+            const appearances = {
+                success: { bgColor: 'bg-primary', icon: 'ph-check-circle' },
+                info: { bgColor: 'bg-blue-600', icon: 'ph-info' },
+                error: { bgColor: 'bg-red-600', icon: 'ph-warning-circle' }
+            };
+            const { bgColor, icon } = appearances[type] ?? appearances.error;
 
             toast.className = `flex items-center text-white px-4 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-y-10 opacity-0 ${bgColor}`;
             toast.innerHTML = `
@@ -529,7 +542,7 @@
                 // Catat di riwayat
                 const now = new Date();
                 const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-                const newId = 'ORD-B2B-' + Math.floor(100 + Math.random() * 900);
+                const newId = generateOrderId();
 
                 orderHistory.unshift({
                     id: newId,
@@ -759,6 +772,13 @@
             }, 300);
         }
 
+
+        document.getElementById('promo-modal-overlay').addEventListener('click', event => {
+            if (event.target === event.currentTarget) {
+                closePromoModal();
+            }
+        });
+
         function handlePromoAction(promoKey) {
             const promo = PROMO_DATA[promoKey];
             if (!promo) return;
@@ -793,7 +813,7 @@
             if (!promoKey || !PROMO_DATA[promoKey]) return '';
             const promo = PROMO_DATA[promoKey];
             return `
-                <div class="bg-gradient-to-r ${promo.gradient} rounded-xl p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg text-white relative overflow-hidden cursor-pointer" onclick="openPromoModal('${promoKey}')">
+                <div class="bg-gradient-to-r ${promo.gradient} rounded-xl p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg text-white relative overflow-hidden">
                     <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
                     <div class="flex items-center gap-3 relative z-10">
                         <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0"><i class="ph-fill ${promo.icon} text-xl"></i></div>
@@ -802,7 +822,7 @@
                             <p class="text-white/80 text-xs">Klik untuk melihat detail penawaran</p>
                         </div>
                     </div>
-                    <button class="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-bold px-5 py-2 rounded-xl text-sm transition-all border border-white/20 shrink-0 relative z-10 flex items-center gap-1.5">
+                    <button type="button" onclick="openPromoModal('${promoKey}')" class="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-bold px-5 py-2 rounded-xl text-sm transition-all border border-white/20 shrink-0 relative z-10 flex items-center gap-1.5">
                         Lihat Detail <i class="ph-bold ph-arrow-right"></i>
                     </button>
                 </div>`;

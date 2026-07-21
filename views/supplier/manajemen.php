@@ -23,11 +23,19 @@ $materials = Material::getBySupplier($userId);
                 <?php if (empty($materials)): ?>
                 <tr><td colspan="5" class="py-8 text-center text-slate-500">Belum ada bahan baku. Tambahkan data pertama Anda.</td></tr>
                 <?php else: foreach ($materials as $m): ?>
+                <?php
+                $stockClass = 'text-red-500';
+                if ((int) $m['stock'] > 100) {
+                    $stockClass = 'text-green-600';
+                } elseif ((int) $m['stock'] > 0) {
+                    $stockClass = 'text-amber-600';
+                }
+                ?>
                 <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                     <td class="py-3 px-4"><div class="font-medium text-slate-800"><?= htmlspecialchars($m['name']) ?></div><div class="text-xs text-slate-500"><?= $m['material_code'] ?></div></td>
                     <td class="py-3 px-4 text-sm text-slate-600"><?= htmlspecialchars($m['category']) ?></td>
                     <td class="py-3 px-4 text-sm font-medium text-slate-800">Rp <?= number_format($m['price'], 0, ',', '.') ?> <span class="text-xs text-slate-500 font-normal">/<?= $m['unit'] ?></span></td>
-                    <td class="py-3 px-4"><span class="text-sm font-bold <?= $m['stock'] > 100 ? 'text-green-600' : ($m['stock'] > 0 ? 'text-amber-600' : 'text-red-500') ?> px-2 py-1 bg-white border border-slate-200 rounded"><?= $m['stock'] ?></span></td>
+                    <td class="py-3 px-4"><span class="text-sm font-bold <?= $stockClass ?> px-2 py-1 bg-white border border-slate-200 rounded"><?= $m['stock'] ?></span></td>
                     <td class="py-3 px-4">
                         <div class="flex items-center gap-2">
                             <button onclick="openMaterialModal(<?= $m['id'] ?>)" class="w-8 h-8 rounded bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors" title="Edit"><i class="ph ph-pencil-simple"></i></button>
@@ -51,14 +59,14 @@ $materials = Material::getBySupplier($userId);
         <form onsubmit="saveMaterial(event)" class="p-6 overflow-y-auto max-h-[70vh]">
             <input type="hidden" id="material-id">
             <div class="space-y-4">
-                <div><label class="block text-sm font-semibold text-slate-700 mb-1">Nama Item</label><input type="text" id="material-name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-sm" placeholder="Contoh: Gula Merah Aren"></div>
+                <div><label for="material-name" class="block text-sm font-semibold text-slate-700 mb-1">Nama Item</label><input type="text" id="material-name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-sm" placeholder="Contoh: Gula Merah Aren"></div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-sm font-semibold text-slate-700 mb-1">Kategori</label><select id="material-category" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-sm bg-white"><option value="Bahan Pokok">Bahan Pokok</option><option value="Cair">Bahan Cair</option><option value="Bumbu & Rempah">Bumbu & Rempah</option><option value="Kemasan">Kemasan</option><option value="Lainnya">Lainnya</option></select></div>
-                    <div><label class="block text-sm font-semibold text-slate-700 mb-1">Satuan</label><select id="material-unit" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-sm bg-white"><option value="Kg">Kg</option><option value="Gram">Gram</option><option value="Liter">Liter</option><option value="Pcs">Pcs</option><option value="Tray">Tray</option><option value="Dus">Dus</option></select></div>
+                    <div><label for="material-category" class="block text-sm font-semibold text-slate-700 mb-1">Kategori</label><select id="material-category" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-sm bg-white"><option value="Bahan Pokok">Bahan Pokok</option><option value="Cair">Bahan Cair</option><option value="Bumbu & Rempah">Bumbu & Rempah</option><option value="Kemasan">Kemasan</option><option value="Lainnya">Lainnya</option></select></div>
+                    <div><label for="material-unit" class="block text-sm font-semibold text-slate-700 mb-1">Satuan</label><select id="material-unit" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-sm bg-white"><option value="Kg">Kg</option><option value="Gram">Gram</option><option value="Liter">Liter</option><option value="Pcs">Pcs</option><option value="Tray">Tray</option><option value="Dus">Dus</option></select></div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-sm font-semibold text-slate-700 mb-1">Harga B2B (Rp)</label><input type="number" id="material-price" required min="0" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-sm" placeholder="15000"></div>
-                    <div><label class="block text-sm font-semibold text-slate-700 mb-1">Stok Fisik Tersedia</label><input type="number" id="material-stock" required min="0" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-sm" placeholder="100"></div>
+                    <div><label for="material-price" class="block text-sm font-semibold text-slate-700 mb-1">Harga B2B (Rp)</label><input type="number" id="material-price" required min="0" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-sm" placeholder="15000"></div>
+                    <div><label for="material-stock" class="block text-sm font-semibold text-slate-700 mb-1">Stok Fisik Tersedia</label><input type="number" id="material-stock" required min="0" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-sm" placeholder="100"></div>
                 </div>
             </div>
             <div class="mt-8 flex justify-end gap-3 pt-4 border-t border-slate-100">

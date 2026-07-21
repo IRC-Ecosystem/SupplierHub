@@ -65,10 +65,10 @@ $pageTitle = 'Masuk / Daftar - B2BLink';
                 <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]"></div>
                 <div id="side-gradient" class="absolute inset-0 bg-gradient-to-br from-emerald-600/30 via-transparent to-transparent transition-colors duration-700 pointer-events-none"></div>
                 <div class="relative z-10">
-                    <div class="flex items-center gap-3 mb-12 lg:mb-16 cursor-pointer group" onclick="window.location.href='landingpage.html'">
+                    <a href="landingpage.html" class="flex items-center gap-3 mb-12 lg:mb-16 cursor-pointer group">
                         <div class="w-12 h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/30 transform group-hover:scale-105 transition-transform"><i class="ph-fill ph-intersect text-3xl text-white"></i></div>
                         <span class="font-extrabold text-2xl tracking-tight">SupplierHub</span>
-                    </div>
+                    </a>
                     <div>
                         <h2 class="text-3xl lg:text-4xl font-extrabold mb-4 lg:mb-6 leading-tight" id="side-title">Pengadaan yang lebih tertata</h2>
                         <p class="text-slate-300 text-sm lg:text-base leading-relaxed font-medium" id="side-desc">Kelola katalog, pesanan supplier, dan status pembayaran dalam satu ruang kerja.</p>
@@ -84,10 +84,10 @@ $pageTitle = 'Masuk / Daftar - B2BLink';
 
             <!-- Right Panel - Forms -->
             <div class="w-full md:w-7/12 p-6 sm:p-8 lg:p-14 relative flex flex-col justify-center bg-white/40">
-                <div class="flex items-center justify-center gap-2 mb-8 md:hidden cursor-pointer" onclick="window.location.href='landingpage.html'">
+                <a href="landingpage.html" class="flex items-center justify-center gap-2 mb-8 md:hidden cursor-pointer">
                     <div class="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/30 text-white"><i class="ph-fill ph-intersect text-2xl"></i></div>
                     <span class="font-extrabold text-2xl text-slate-900 tracking-tight">SupplierHub</span>
-                </div>
+                </a>
 
                 <!-- Tab Toggle -->
                 <div class="flex p-1.5 bg-slate-200/50 backdrop-blur rounded-2xl mb-8 lg:mb-10 w-full max-w-sm mx-auto relative">
@@ -105,7 +105,7 @@ $pageTitle = 'Masuk / Daftar - B2BLink';
                     <form onsubmit="handleLogin(event)" class="space-y-5 lg:space-y-6 max-w-md mx-auto">
                         <div class="space-y-4 sm:space-y-5">
                             <div class="input-group" style="--focus-color:#3b82f6;" id="login-email-group">
-                                <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-2 transition-colors tracking-wide">Email Bisnis</label>
+                                <label for="login-email" class="block text-xs sm:text-sm font-bold text-slate-700 mb-2 transition-colors tracking-wide">Email Bisnis</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-fill ph-envelope-simple text-lg sm:text-xl text-slate-400"></i></div>
                                     <input type="email" required class="block w-full pl-11 sm:pl-12 pr-4 py-3 sm:py-3.5 border-2 border-slate-200/60 rounded-2xl focus:ring-0 outline-none transition-all bg-white text-slate-800 font-semibold text-sm sm:text-base hover:border-slate-300 shadow-sm" placeholder="email@bisnis.com" id="login-email">
@@ -113,7 +113,7 @@ $pageTitle = 'Masuk / Daftar - B2BLink';
                             </div>
                             <div class="input-group" style="--focus-color:#3b82f6;" id="login-password-group">
                                 <div class="flex justify-between items-center mb-2">
-                                    <label class="block text-xs sm:text-sm font-bold text-slate-700 transition-colors tracking-wide">Kata Sandi</label>
+                                    <label for="login-password" class="block text-xs sm:text-sm font-bold text-slate-700 transition-colors tracking-wide">Kata Sandi</label>
                                 </div>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-fill ph-lock-key text-lg sm:text-xl text-slate-400"></i></div>
@@ -138,14 +138,17 @@ $pageTitle = 'Masuk / Daftar - B2BLink';
                         <div class="space-y-3 sm:space-y-4">
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-fill ph-buildings text-lg sm:text-xl text-slate-400"></i></div>
+                                <label for="reg-name" class="sr-only">Nama Usaha / Perusahaan</label>
                                 <input type="text" required id="reg-name" class="block w-full pl-11 sm:pl-12 pr-4 py-3 sm:py-3.5 border-2 border-slate-200/60 rounded-2xl focus:ring-0 outline-none bg-white text-slate-800 font-semibold text-sm sm:text-base transition-all hover:border-slate-300 shadow-sm" placeholder="Nama Usaha / Perusahaan">
                             </div>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-fill ph-envelope-simple text-lg sm:text-xl text-slate-400"></i></div>
+                                <label for="reg-email" class="sr-only">Email Bisnis Resmi</label>
                                 <input type="email" required id="reg-email" class="block w-full pl-11 sm:pl-12 pr-4 py-3 sm:py-3.5 border-2 border-slate-200/60 rounded-2xl focus:ring-0 outline-none bg-white text-slate-800 font-semibold text-sm sm:text-base transition-all hover:border-slate-300 shadow-sm" placeholder="Email Bisnis Resmi">
                             </div>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-fill ph-lock-key text-lg sm:text-xl text-slate-400"></i></div>
+                                <label for="reg-password" class="sr-only">Kata Sandi</label>
                                 <input type="password" required id="reg-password" class="block w-full pl-11 sm:pl-12 pr-12 py-3 sm:py-3.5 border-2 border-slate-200/60 rounded-2xl focus:ring-0 outline-none bg-white text-slate-800 font-semibold text-sm sm:text-base transition-all hover:border-slate-300 shadow-sm" placeholder="Buat Kata Sandi (Min. 8 karakter)">
                             </div>
                         </div>
@@ -221,17 +224,17 @@ $pageTitle = 'Masuk / Daftar - B2BLink';
 
             if (res.status === 'success') {
                 localStorage.setItem('jwt_token', res.data.token);
-                
+
                 const role = res.data.role;
                 text.innerText = role === 'integrator' ? 'Integration Console Siap!' : (role === 'umkm' ? 'Portal UMKM Siap!' : 'SupplierHub Siap!');
                 sub.innerText = role === 'integrator' ? 'Memuat kontrak endpoint lintas aplikasi' : (role === 'umkm' ? 'Menghubungkan ke Katalog Supplier' : 'Memuat Data Gudang & Pesanan');
-                
+
                 spinner.classList.remove('border-t-transparent','animate-spin');
                 spinner.innerHTML = '<i class="ph-bold ph-check text-white text-4xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></i>';
-                
+
                 const c = role === 'umkm' ? 'emerald' : (role === 'integrator' ? 'violet' : 'blue');
                 spinner.className = `absolute inset-0 rounded-full border-4 border-${c}-500 bg-${c}-500`;
-                
+
                 setTimeout(() => { window.location.href = res.data.redirect; }, 800);
             } else {
                 overlay.classList.add('opacity-0'); overlay.classList.remove('opacity-100');

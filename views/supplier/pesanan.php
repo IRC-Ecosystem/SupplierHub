@@ -1,4 +1,8 @@
 <?php
+require_once __DIR__ . '/../../models/Order.php';
+if (!isset($userId)) {
+    $userId = (int) ($_SESSION['user_id'] ?? 0);
+}
 $orders = Order::getPending($userId);
 $completedOrders = Order::getCompleted($userId);
 ?>
@@ -96,7 +100,7 @@ $completedOrders = Order::getCompleted($userId);
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous"></script>
 <script>
 const BASE='<?= rtrim(dirname($_SERVER["SCRIPT_NAME"]),"/\\") ?>';
 let currentOrderId=null;

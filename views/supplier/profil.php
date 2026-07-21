@@ -1,5 +1,11 @@
 <?php
 require_once __DIR__.'/../../models/Procurement.php';
+if (!isset($userId)) {
+    $userId = (int) ($_SESSION['user_id'] ?? 0);
+}
+if (!isset($userName)) {
+    $userName = (string) ($_SESSION['name'] ?? 'Supplier');
+}
 $db=getDB();$q=$db->prepare('SELECT * FROM supplier_profiles WHERE supplier_id=:id');$q->execute(['id'=>$userId]);$profile=$q->fetch()?:[];$performance=Procurement::supplierPerformance($userId);
 $total=max(1,(int)($performance['total_orders']??0));$completion=round(((int)($performance['completed_orders']??0)/$total)*100,1);
 ?>

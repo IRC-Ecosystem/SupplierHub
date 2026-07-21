@@ -142,15 +142,14 @@
                 </div>
 
                 <div class="relative z-10">
-                    <div class="flex items-center gap-3 mb-12 lg:mb-16 cursor-pointer group"
-                        onclick="window.location.href='landingpage.html'">
+                    <a href="landingpage.html" class="flex items-center gap-3 mb-12 lg:mb-16 cursor-pointer group">
                         <div
                             class="w-12 h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/30 transform group-hover:scale-105 transition-transform">
                             <i class="ph-fill ph-intersect text-3xl text-white"></i>
                         </div>
                         <span class="font-extrabold text-2xl tracking-tight">B2B<span
                                 class="text-brand-400">Link</span></span>
-                    </div>
+                    </a>
 
                     <div>
                         <h2 class="text-3xl lg:text-4xl font-extrabold mb-4 lg:mb-6 leading-tight" id="side-title">
@@ -182,15 +181,14 @@
             <div class="w-full md:w-7/12 p-6 sm:p-8 lg:p-14 relative flex flex-col justify-center bg-white/40">
 
                 <!-- Header Branding Mobile -->
-                <div class="flex items-center justify-center gap-2 mb-8 md:hidden cursor-pointer"
-                    onclick="window.location.href='landingpage.html'">
+                <a href="landingpage.html" class="flex items-center justify-center gap-2 mb-8 md:hidden cursor-pointer">
                     <div
                         class="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/30 text-white">
                         <i class="ph-fill ph-intersect text-2xl"></i>
                     </div>
                     <span class="font-extrabold text-2xl text-slate-900 tracking-tight">B2B<span
                             class="text-brand-600">Link</span></span>
-                </div>
+                </a>
 
                 <!-- Toggle Login / Register (Pill Style) -->
                 <div
@@ -256,7 +254,7 @@
 
                         <div class="space-y-4 sm:space-y-5">
                             <div class="input-group" style="--focus-color: #10b981;" id="login-email-group">
-                                <label
+                                <label for="login-email-input"
                                     class="block text-xs sm:text-sm font-bold text-slate-700 mb-2 transition-colors tracking-wide">Email
                                     Bisnis</label>
                                 <div class="relative">
@@ -266,13 +264,13 @@
                                     </div>
                                     <input type="email" required
                                         class="block w-full pl-11 sm:pl-12 pr-4 py-3 sm:py-3.5 border-2 border-slate-200/60 rounded-2xl focus:ring-0 outline-none transition-all bg-white focus:bg-white text-slate-800 font-semibold text-sm sm:text-base hover:border-slate-300 shadow-sm"
-                                        placeholder="email@bisnis.com" id="login-email-input">
+                                        placeholder="email@bisnis.com" id="login-email-input" name="email" autocomplete="email">
                                 </div>
                             </div>
 
                             <div class="input-group" style="--focus-color: #10b981;" id="login-password-group">
                                 <div class="flex justify-between items-center mb-2">
-                                    <label
+                                    <label for="login-password-input"
                                         class="block text-xs sm:text-sm font-bold text-slate-700 transition-colors tracking-wide">Kata
                                         Sandi</label>
                                     <a href="#"
@@ -286,7 +284,7 @@
                                     </div>
                                     <input type="password" required
                                         class="block w-full pl-11 sm:pl-12 pr-12 py-3 sm:py-3.5 border-2 border-slate-200/60 rounded-2xl focus:ring-0 outline-none transition-all bg-white focus:bg-white text-slate-800 font-semibold text-sm sm:text-base hover:border-slate-300 shadow-sm"
-                                        placeholder="••••••••" id="login-password-input">
+                                        placeholder="••••••••" id="login-password-input" name="password" autocomplete="current-password">
                                     <button type="button"
                                         class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
                                         onclick="togglePassword('login-password-input')">
@@ -316,17 +314,19 @@
 
                         <div class="space-y-3 sm:space-y-4">
                             <div class="input-group" style="--focus-color: #10b981;" id="reg-name-group">
+                                <label for="reg-name-input" class="sr-only">Nama Usaha atau Perusahaan</label>
                                 <div class="relative">
                                     <div
                                         class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors">
                                         <i class="ph-fill ph-buildings text-lg sm:text-xl text-slate-400"></i></div>
                                     <input type="text" required
                                         class="block w-full pl-11 sm:pl-12 pr-4 py-3 sm:py-3.5 border-2 border-slate-200/60 rounded-2xl focus:ring-0 outline-none bg-white text-slate-800 font-semibold text-sm sm:text-base transition-all hover:border-slate-300 shadow-sm"
-                                        placeholder="Nama Usaha / Perusahaan">
+                                        placeholder="Nama Usaha / Perusahaan" id="reg-name-input" name="name" autocomplete="organization">
                                 </div>
                             </div>
 
                             <div class="input-group" style="--focus-color: #10b981;" id="reg-email-group">
+                                <label for="reg-email-input" class="sr-only">Email Bisnis Resmi</label>
                                 <div class="relative">
                                     <div
                                         class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors">
@@ -334,18 +334,19 @@
                                     </div>
                                     <input type="email" required
                                         class="block w-full pl-11 sm:pl-12 pr-4 py-3 sm:py-3.5 border-2 border-slate-200/60 rounded-2xl focus:ring-0 outline-none bg-white text-slate-800 font-semibold text-sm sm:text-base transition-all hover:border-slate-300 shadow-sm"
-                                        placeholder="Email Bisnis Resmi">
+                                        placeholder="Email Bisnis Resmi" id="reg-email-input" name="email" autocomplete="email">
                                 </div>
                             </div>
 
                             <div class="input-group" style="--focus-color: #10b981;" id="reg-password-group">
+                                <label for="reg-password-input" class="sr-only">Buat Kata Sandi</label>
                                 <div class="relative">
                                     <div
                                         class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors">
                                         <i class="ph-fill ph-lock-key text-lg sm:text-xl text-slate-400"></i></div>
                                     <input type="password" required
                                         class="block w-full pl-11 sm:pl-12 pr-12 py-3 sm:py-3.5 border-2 border-slate-200/60 rounded-2xl focus:ring-0 outline-none bg-white text-slate-800 font-semibold text-sm sm:text-base transition-all hover:border-slate-300 shadow-sm"
-                                        placeholder="Buat Kata Sandi (Min. 8 karakter)" id="reg-password-input">
+                                        placeholder="Buat Kata Sandi (Min. 8 karakter)" id="reg-password-input" name="password" autocomplete="new-password">
                                     <button type="button"
                                         class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
                                         onclick="togglePassword('reg-password-input')">

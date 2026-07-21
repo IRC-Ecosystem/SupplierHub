@@ -26,7 +26,7 @@ Pindahkan kedua folder project ke direktori root Laragon Anda:
 - Buka MySQL manager Anda (phpMyAdmin / HeidiSQL).
 - Buat database baru bernama `supplierhub_db`.
 - Import file SQL dari: `C:\laragon\www\SupplierHub\sql\setup.sql`.
-- Setelah setup dasar, jalankan migration secara berurutan dari folder `sql/migrations/`, termasuk `004_p1_local_procurement.sql` untuk fitur fulfillment, goods receipt, dispute, supplier master, dan outbox lokal.
+- Setelah setup dasar, jalankan migration secara berurutan dari folder `sql/migrations/`, termasuk `004_p1_local_procurement.sql` untuk fitur fulfillment, goods receipt, dispute, supplier master, dan outbox lokal, lalu `005_integrator_portal.sql` dan `006_p2_local_reliability.sql` untuk portal integrator serta reliability worker/reconciliation/refund lokal.
 
 ### 2. Database SmartBank (`smartbank_db`)
 - Buat database baru bernama `smartbank_db`.

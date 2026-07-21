@@ -7,7 +7,7 @@ $_GET['page'] = 'keuangan';
 
 ob_start();
 try {
-    require 'index.php';
+    require_once __DIR__ . '/index.php';
 } catch (Exception $e) {
     echo "Exception: " . $e->getMessage() . "\n" . $e->getTraceAsString();
 } catch (Error $e) {

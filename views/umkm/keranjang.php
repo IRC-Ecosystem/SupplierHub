@@ -34,10 +34,10 @@ if ($subscription === 'vip') {
 $grandTotal = max(0, $subtotal + $fee - $bundleDiscount - $subDiscount);
 ?>
 <style>
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 </style>
 <div class="mb-6"><h1 class="text-2xl font-bold text-slate-800">Keranjang Belanja</h1><p class="text-slate-500 text-sm mt-1">Review pesanan dan proses pembayaran melalui SmartBank.</p></div>
@@ -67,7 +67,8 @@ input[type=number]::-webkit-outer-spin-button {
             <div class="flex items-center">
                 <div class="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-slate-50 mr-4">
                     <button onclick="changeCart(<?= $idx ?>,'decrease')" class="px-3 py-1 hover:bg-slate-200 text-slate-600 font-bold transition-colors">-</button>
-                    <input type="number" min="1" value="<?= $item['cart_qty'] ?>" onchange="updateQty(<?= $idx ?>, this.value)" class="w-12 py-1 bg-white text-sm font-bold text-center border-y-0 border-x border-slate-200 focus:outline-none" style="-moz-appearance: textfield; margin: 0;">
+                    <label for="cart-quantity-<?= $idx ?>" class="sr-only">Jumlah <?= htmlspecialchars($item['name']) ?></label>
+                    <input id="cart-quantity-<?= $idx ?>" name="cart_quantity_<?= $idx ?>" type="number" min="1" value="<?= $item['cart_qty'] ?>" onchange="updateQty(<?= $idx ?>, this.value)" class="w-12 py-1 bg-white text-sm font-bold text-center border-y-0 border-x border-slate-200 focus:outline-none" style="-moz-appearance: textfield; margin: 0;">
                     <button onclick="changeCart(<?= $idx ?>,'increase')" class="px-3 py-1 hover:bg-slate-200 text-slate-600 font-bold transition-colors">+</button>
                 </div>
                 <div class="w-24 text-right"><div class="font-bold text-slate-800 text-sm">Rp <?= number_format($item['item_total'],0,',','.') ?></div></div>
@@ -113,7 +114,7 @@ input[type=number]::-webkit-outer-spin-button {
 <!-- SmartBank Checkout Modal -->
 <div id="smartbank-checkout-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-all duration-300 opacity-0">
     <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden transform scale-95 transition-all duration-300 flex flex-col relative" id="smartbank-checkout-card">
-        
+
         <!-- Multi-stage Payment Loader -->
         <div id="sb-payment-loader" class="absolute inset-0 bg-white/95 backdrop-blur-md z-50 hidden flex-col items-center justify-center p-6 text-center transition-all duration-300">
             <div class="w-20 h-20 relative mb-6">
@@ -147,7 +148,7 @@ input[type=number]::-webkit-outer-spin-button {
                 <p class="text-xs text-slate-500 mb-1">Total Pembayaran</p>
                 <h3 class="text-3xl font-extrabold text-slate-800">Rp <?= number_format($grandTotal, 0, ',', '.') ?></h3>
             </div>
-            
+
             <div class="space-y-3 bg-white border border-slate-100 rounded-xl p-4 shadow-sm">
                 <div class="flex justify-between items-center text-xs">
                     <span class="text-slate-500">Merchant</span>
@@ -162,7 +163,7 @@ input[type=number]::-webkit-outer-spin-button {
                     <span class="font-bold text-slate-700">Belum dilakukan</span>
                 </div>
             </div>
-            
+
             <div class="p-3 rounded-xl bg-blue-50 border border-blue-100 text-xs text-blue-700">
                 Supplier harus menerima pesanan sebelum simulasi pembayaran tersedia di halaman Riwayat Pesanan.
             </div>
@@ -226,7 +227,7 @@ async function processCheckout(){
     const sub = document.getElementById('sb-payment-status-sub');
     const spinner = document.getElementById('sb-payment-spinner');
     const checkIcon = document.getElementById('sb-payment-success-icon');
-    
+
     // Show Loader
     loader.classList.remove('hidden');
     loader.style.opacity = '1';
@@ -237,7 +238,7 @@ async function processCheckout(){
 
     title.innerText = 'Membuat Order...';
     sub.innerText = 'Menyimpan order tanpa pembayaran';
-    
+
     const totalDiscount = cartState.bundleDiscount + cartState.subDiscount;
     let discountName = '';
     if (cartState.bundleDiscount > 0) {
@@ -249,13 +250,13 @@ async function processCheckout(){
     }
 
     const r = await apiCall(BASE+'/api/orders.php?action=checkout','POST',{
-        supplier_id: 1, 
+        supplier_id: 1,
         from_cart: true,
         discount: totalDiscount,
         voucher_name: discountName
         ,idempotency_key: checkoutIdempotencyKey
     });
-    
+
     await new Promise(r => setTimeout(r, 800));
 
     if(r.status==='success'){

@@ -23,7 +23,7 @@ $data = $statsResponse['data'];
                 </div>
             </div>
         </div>
-        
+
         <div class="bg-white rounded-xl p-6 border border-slate-100 shadow-sm flex items-center justify-between flex-1 min-h-[120px]">
             <div>
                 <p class="text-sm text-slate-500 font-medium mb-1">Total Pengeluaran Buku Kas</p>
@@ -34,7 +34,7 @@ $data = $statsResponse['data'];
             </div>
         </div>
     </div>
-    
+
     <!-- Right Column: Visual Chart -->
     <div class="lg:col-span-2 bg-white rounded-xl p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
         <h3 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-1.5"><i class="ph ph-chart-bar text-emerald-600"></i> Tren Pengeluaran Dana (Buku Kas)</h3>
@@ -58,7 +58,7 @@ $data = $statsResponse['data'];
             </button>
         </div>
     </div>
-    
+
     <!-- Tab 1: Local Buku Kas -->
     <div id="tab-content-local" class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
@@ -158,7 +158,7 @@ $data = $statsResponse['data'];
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous"></script>
 <script>
 const BASE='<?= rtrim(dirname($_SERVER["SCRIPT_NAME"]),"/\\") ?>';
 let currentReceiptCode = '';
@@ -182,12 +182,12 @@ async function viewReceiptByRef(ref) {
 
     // Fetch order detail
     const r = await apiCall(BASE + '/api/orders.php?action=detail_by_ref&ref=' + encodeURIComponent(ref));
-    if (r.status !== 'success') { 
-        showToast('Gagal memuat detail transaksi / data pesanan tidak ditemukan.', 'error'); 
+    if (r.status !== 'success') {
+        showToast('Gagal memuat detail transaksi / data pesanan tidak ditemukan.', 'error');
         closeReceiptModal();
-        return; 
+        return;
     }
-    
+
     const o = r.data;
 
     // Render receipt
@@ -337,7 +337,7 @@ async function switchTab(tab) {
         document.getElementById('tab-btn-local').classList.remove('text-slate-500');
         document.getElementById('tab-btn-smartbank').classList.remove('bg-white', 'text-slate-800', 'shadow-sm');
         document.getElementById('tab-btn-smartbank').classList.add('text-slate-500');
-        
+
         document.getElementById('tab-content-local').classList.remove('hidden');
         document.getElementById('tab-content-smartbank').classList.add('hidden');
     } else {
@@ -345,10 +345,10 @@ async function switchTab(tab) {
         document.getElementById('tab-btn-smartbank').classList.remove('text-slate-500');
         document.getElementById('tab-btn-local').classList.remove('bg-white', 'text-slate-800', 'shadow-sm');
         document.getElementById('tab-btn-local').classList.add('text-slate-500');
-        
+
         document.getElementById('tab-content-local').classList.add('hidden');
         document.getElementById('tab-content-smartbank').classList.remove('hidden');
-        
+
         await loadSmartBankLedger();
     }
 }
@@ -358,31 +358,31 @@ async function loadSmartBankLedger() {
     const error = document.getElementById('smartbank-error');
     const table = document.getElementById('smartbank-table');
     const tbody = document.getElementById('smartbank-table-body');
-    
+
     loading.classList.remove('hidden');
     error.classList.add('hidden');
     table.classList.add('hidden');
     tbody.innerHTML = '';
-    
+
     try {
         const res = await fetch('http://localhost/SmartBank/api/smartbank/ledger_transaksi?limit=50').then(r => r.json());
         if (res.status === 'success') {
             const ledger = res.data.ledger || [];
             const myUserId = 2; // Warung Bu Ani (UMKM) is ID 2 in smartbank_db
             const filtered = ledger.filter(item => item.from_user_id == myUserId || item.to_user_id == myUserId);
-            
+
             if (filtered.length === 0) {
                  tbody.innerHTML = `<tr><td colspan="6" class="py-8 px-6 text-center text-slate-500">Tidak ada riwayat transaksi bank untuk akun Anda.</td></tr>`;
             } else {
                 filtered.forEach(item => {
                     const date = new Date(item.created_at).toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
                     const isDebit = item.from_user_id == myUserId;
-                    const typeBadge = isDebit 
+                    const typeBadge = isDebit
                         ? `<span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-bold rounded">DEBIT</span>`
                         : `<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded">CREDIT</span>`;
                     const amtColor = isDebit ? 'text-red-600' : 'text-emerald-600';
                     const sign = isDebit ? '-' : '+';
-                    
+
                     tbody.innerHTML += `
                         <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
                             <td class="py-4 px-6 text-slate-500">${date}</td>

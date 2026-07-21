@@ -236,6 +236,16 @@ switch ($action) {
         $response = Procurement::openDispute((int)($input['order_id'] ?? 0), $userId, (string)($input['category'] ?? ''), (string)($input['description'] ?? ''));
         break;
 
+    case 'resolve_dispute':
+        $user = AuthMiddleware::requireAuth('supplier');
+        $response = Procurement::resolveDispute((int)($input['dispute_id'] ?? 0), (int)$user['user_id'], (string)($input['resolution'] ?? ''), (string)($input['resolution_note'] ?? ''));
+        break;
+
+    case 'request_refund':
+        $user = AuthMiddleware::requireAuth('umkm');
+        $response = Procurement::requestRefund((int)($input['order_id'] ?? 0), (int)$user['user_id'], trim((string)($input['idempotency_key'] ?? '')), (string)($input['reason'] ?? ''));
+        break;
+
     case 'supplier_performance':
         $user = AuthMiddleware::requireAuth('supplier');
         $userId = (int)$user['user_id'];

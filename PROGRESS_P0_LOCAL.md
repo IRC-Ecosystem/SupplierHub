@@ -253,3 +253,19 @@ P0 dan P1 lokal dinyatakan **selesai**. SupplierHub sekarang memiliki transaksi 
 | Akun UMKM mengakses integration API | HTTP 403 |
 | Webhook dengan signature salah | HTTP 401 |
 | Automated test | `INTEGRATOR_PORTAL_OK` |
+
+## P2 Lokal — Reliability & Operasional
+
+| Area | Sebelum | Sesudah | Status |
+|---|---|---|---|
+| Outbox delivery | Event hanya tersimpan | Worker mock dengan retry, backoff, dan `dead_letter` | Selesai lokal |
+| Event duplicate | Belum ada inbox dedup | `inbox_events` unik per source/event | Selesai lokal |
+| Webhook audit | Tidak ada receipt | `webhook_receipts` menyimpan hash, status, dan error | Selesai lokal |
+| Rekonsiliasi | Tidak ada deteksi timeout | Deteksi payment pending, shipment hilang, inventory sync tertunda | Selesai lokal |
+| Refund | Belum ada state lokal | `refund_pending`, `refunded`, `refund_failed` + mock completion | Selesai lokal |
+| Dispute supplier | Hanya bisa dibuka | Supplier dapat resolve/reject dengan catatan | Selesai lokal |
+| Integrator monitoring | Hanya status/outbox | Tombol worker mock, rekonsiliasi, dan daftar issue | Selesai lokal |
+
+Implementasi utama: `sql/migrations/006_p2_local_reliability.sql`, `services/ReliabilityService.php`, `services/MockIntegrationAdapter.php`, serta endpoint baru di `api/integrations.php` dan `api/orders.php`.
+
+Verifikasi: `P2_LOCAL_RELIABILITY_OK` dan seluruh regression test P0/P1 tetap lulus.

@@ -1,3 +1,8 @@
+<?php
+if (!isset($pendingCount)) {
+    $pendingCount = 0;
+}
+?>
 <aside class="app-sidebar flex flex-col hidden md:flex">
     <div class="app-brand">
         <div class="app-brand-mark"><i class="ph ph-buildings"></i></div>
@@ -6,14 +11,14 @@
             <div class="app-brand-subtitle">Supplier workspace</div>
         </div>
     </div>
-    <nav class="app-nav flex-1 overflow-y-auto">
+    <nav class="app-nav flex-1 overflow-y-auto" aria-label="Navigasi supplier">
         <div class="app-nav-label">Workspace</div>
         <a href="index.php?p=supplier&page=dashboard" class="app-nav-link <?= ($currentPage ?? '') === 'dashboard' ? 'active' : '' ?>">
             <i class="ph ph-house"></i><span>Ringkasan</span>
         </a>
         <a href="index.php?p=supplier&page=pesanan" class="app-nav-link <?= ($currentPage ?? '') === 'pesanan' ? 'active' : '' ?>">
             <i class="ph ph-file-text"></i><span>Pesanan</span>
-            <?php if (($pendingCount ?? 0) > 0): ?><span class="app-nav-badge"><?= $pendingCount ?></span><?php endif; ?>
+            <?php if ($pendingCount > 0): ?><span class="app-nav-badge"><?= $pendingCount ?></span><?php endif; ?>
         </a>
         <a href="index.php?p=supplier&page=manajemen" class="app-nav-link <?= ($currentPage ?? '') === 'manajemen' ? 'active' : '' ?>">
             <i class="ph ph-package"></i><span>Produk &amp; stok</span>
@@ -32,7 +37,7 @@
         <div><div class="app-user-name"><?= htmlspecialchars($userName ?? 'Supplier') ?></div><div class="app-user-role">Akun supplier</div></div>
     </div>
 </aside>
-<nav class="mobile-nav md:hidden">
+<nav class="mobile-nav md:hidden" aria-label="Navigasi supplier seluler">
     <a href="index.php?p=supplier&page=dashboard" class="<?= ($currentPage ?? '') === 'dashboard' ? 'active' : '' ?>"><i class="ph ph-house"></i><span>Ringkasan</span></a>
     <a href="index.php?p=supplier&page=pesanan" class="<?= ($currentPage ?? '') === 'pesanan' ? 'active' : '' ?>"><i class="ph ph-file-text"></i><span>Pesanan</span></a>
     <a href="index.php?p=supplier&page=manajemen" class="<?= ($currentPage ?? '') === 'manajemen' ? 'active' : '' ?>"><i class="ph ph-package"></i><span>Produk</span></a>

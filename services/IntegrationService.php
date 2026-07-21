@@ -2,6 +2,7 @@
 require_once __DIR__.'/../config/database.php';
 require_once __DIR__.'/../controllers/OrderController.php';
 require_once __DIR__.'/../models/Procurement.php';
+require_once __DIR__.'/ReliabilityService.php';
 
 class IntegrationService {
     public static function configuration(): array {
@@ -22,15 +23,20 @@ class IntegrationService {
         return hash_equals(hash_hmac('sha256',$raw,$secret),$provided);
     }
 
+    public static function eventId(): string { return trim((string)($_SERVER['HTTP_X_B2BLINK_EVENT_ID']??'')); }
+
     public static function smartBankCallback(array $data): array {
         $orderId=(int)($data['order_id']??0);$status=(string)($data['status']??'');$reference=trim((string)($data['payment_reference']??''));
         if(!$orderId||!in_array($status,['succeeded','failed'],true))return ['status'=>'error','message'=>'Payload callback SmartBank tidak valid.'];
-        return OrderController::verifySmartBankPayment($orderId,$status,$reference?:null);
+        $eventId=self::eventId();if($eventId==='')return ['status'=>'error','message'=>'X-B2BLink-Event-Id wajib diisi.'];
+        $inbox=ReliabilityService::recordInbox('smartbank',$eventId,'PAYMENT_VERIFICATION',$data);if(!empty($inbox['idempotent_replay']))return ['status'=>'success','message'=>'Callback SmartBank sudah diproses.','data'=>['idempotent_replay'=>true]];
+        $response=OrderController::verifySmartBankPayment($orderId,$status,$reference?:null);if($response['status']!=='success')ReliabilityService::recordWebhook('smartbank',$eventId,(string)json_encode($data),(string)($_SERVER['HTTP_X_B2BLINK_SIGNATURE']??''),'failed',$response['message']??'Callback gagal');return $response;
     }
 
     public static function logisticsEvent(array $data): array {
         $orderId=(int)($data['order_id']??0);$event=(string)($data['event']??'');$reference=trim((string)($data['tracking_reference']??''));
         if(!$orderId||$event!=='shipment.created'||$reference==='')return ['status'=>'error','message'=>'Payload event LogistiKita tidak valid.'];
+        $eventId=self::eventId();if($eventId==='')return ['status'=>'error','message'=>'X-B2BLink-Event-Id wajib diisi.'];$inbox=ReliabilityService::recordInbox('logistikita',$eventId,'SHIPMENT_CREATED',$data);if(!empty($inbox['idempotent_replay']))return ['status'=>'success','message'=>'Shipment event sudah diproses.','data'=>['idempotent_replay'=>true]];
         $db=getDB();$db->beginTransaction();
         try{$q=$db->prepare('SELECT * FROM orders WHERE id=:id FOR UPDATE');$q->execute(['id'=>$orderId]);$o=$q->fetch();if(!$o)throw new DomainException('Pesanan tidak ditemukan.');if(!in_array($o['status'],['paid','processing'],true))throw new DomainException('Order belum dapat dikirim.');$db->prepare("UPDATE orders SET status='shipped',resi_pengiriman=:ref,shipped_at=NOW() WHERE id=:id")->execute(['ref'=>$reference,'id'=>$orderId]);Order::addStatusHistory($orderId,$o['status'],'shipped',null,'Shipment dibuat oleh LogistiKita',$db);Procurement::enqueue($db,$orderId,'SUPPLIER_ORDER_SHIPPED',['order_id'=>$orderId,'tracking_reference'=>$reference,'source'=>'logistikita']);$db->commit();return ['status'=>'success','message'=>'Shipment event diterima.','data'=>['order_status'=>'shipped']];}catch(Throwable $e){if($db->inTransaction())$db->rollBack();return ['status'=>'error','message'=>$e->getMessage()];}
     }

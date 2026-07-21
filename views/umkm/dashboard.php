@@ -3,7 +3,9 @@ $stats = DashboardController::umkmStats($userId);
 $d = $stats['data'];
 $orders = Order::getByUmkm($userId);
 $cartQuantity = 0;
-foreach (($_SESSION['cart'] ?? []) as $item) $cartQuantity += (int)$item['qty'];
+foreach (($_SESSION['cart'] ?? []) as $item) {
+    $cartQuantity += (int) $item['qty'];
+}
 $pendingPayment = count(array_filter($orders, fn($o) => in_array($o['payment_status'], ['unpaid','pending'], true)));
 ?>
 <div class="page-header">
@@ -27,10 +29,20 @@ $pendingPayment = count(array_filter($orders, fn($o) => in_array($o['payment_sta
             <?php else: ?>
                 <table class="w-full"><thead><tr><th class="text-left px-5">Nomor order</th><th class="text-left px-5">Supplier</th><th class="text-left px-5">Status</th><th class="text-right px-5">Total</th></tr></thead><tbody>
                 <?php foreach (array_slice($orders,0,5) as $order):
-                    $paid = $order['payment_status']==='paid';
-                    $pending = $order['payment_status']==='pending';
-                    $statusClass = $paid ? 'status-success' : ($pending ? 'status-info' : 'status-pending');
-                    $statusText = $paid ? 'Dibayar' : ($pending ? 'Verifikasi bank' : ($order['status']==='submitted' ? 'Menunggu supplier' : 'Belum dibayar'));
+                    $paid = $order['payment_status'] === 'paid';
+                    $pending = $order['payment_status'] === 'pending';
+                    $submitted = $order['status'] === 'submitted';
+                    $statusClass = 'status-pending';
+                    $statusText = 'Belum dibayar';
+                    if ($paid) {
+                        $statusClass = 'status-success';
+                        $statusText = 'Dibayar';
+                    } elseif ($pending) {
+                        $statusClass = 'status-info';
+                        $statusText = 'Verifikasi bank';
+                    } elseif ($submitted) {
+                        $statusText = 'Menunggu supplier';
+                    }
                 ?><tr><td class="px-5 font-mono text-xs font-semibold"><?= htmlspecialchars($order['order_code']) ?></td><td class="px-5"><?= htmlspecialchars($order['supplier_name']) ?></td><td class="px-5"><span class="status-chip <?= $statusClass ?>"><?= $statusText ?></span></td><td class="px-5 text-right font-semibold">Rp <?= number_format($order['total'],0,',','.') ?></td></tr><?php endforeach; ?>
                 </tbody></table>
             <?php endif; ?>
